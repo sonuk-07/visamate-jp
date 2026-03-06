@@ -29,9 +29,9 @@ export default function HeroSection() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="inline-block px-4 py-2 bg-[#1e3a5f]/10 text-[#1e3a5f] text-sm font-medium rounded-full mb-6"
+              className="inline-block px-4 py-2 bg-[#1e3a5f]/10 text-[#1e3a5f] text-sm font-semibold rounded-full mb-6"
             >
-              {t.hero.tagline}
+              {t.hero.taglineHighlight} - {t.hero.tagline}
             </motion.span>
 
             <motion.h1
@@ -66,6 +66,7 @@ export default function HeroSection() {
             >
               <Button
                 size="lg"
+                onClick={() => document.getElementById('appointment-modal-trigger')?.click()}
                 className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-8 py-6 text-base rounded-full group transition-all duration-300 shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30"
               >
                 {t.hero.cta}

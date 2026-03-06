@@ -130,6 +130,7 @@ export default function Layout({ children }) {
               )}
 
               <Button
+                id="appointment-modal-trigger"
                 onClick={() => setIsModalOpen(true)}
                 className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-6 rounded-full"
               >

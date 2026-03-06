@@ -1,11 +1,11 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { GraduationCap, FileText, FileCheck, Plane, ArrowRight } from 'lucide-react';
+import { GraduationCap, FileCheck, MapPin, HomeIcon, ArrowRight } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 import { createPageUrl } from '../../utils';
 
-const icons = [GraduationCap, FileText, FileCheck, Plane];
+const icons = [GraduationCap, FileCheck, MapPin, HomeIcon];
 const pageLinks = ['UniversitySelection', 'ApplicationSupport', 'VisaGuidance', 'PreDeparturePrep'];
 
 export default function ServicesSection() {

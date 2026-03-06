@@ -14,31 +14,32 @@ export const translations = {
     },
     hero: {
       tagline: "Your Journey Begins Here",
-      title: "Transform Your Future Through",
+      taglineHighlight: "Bright Future Inspiration",
+      title: "Transform Your Future With",
       titleHighlight: "VisaMate",
-      subtitle: "Expert guidance for your study abroad journey. We connect ambitious students with world-class universities across the globe.",
-      cta: "Book Free Consultation",
+      subtitle: "Empowering individuals through expert guidance on education and migration. Whether seeking quality education abroad or navigating complex visa processes, we support you every step of the way.",
+      cta: "GET STARTED TODAY",
       secondaryCta: "Explore Programs"
     },
     services: {
       title: "Our Services",
-      subtitle: "Comprehensive support at every step of your international education journey",
+      subtitle: "Comprehensive support for your international education and migration journey",
       items: [
         {
-          title: "University Selection",
-          description: "Personalized recommendations based on your academic profile, career goals, and preferences."
+          title: "Study Abroad Guidance",
+          description: "Expert help to find the best courses and universities matching your goals and academic profile."
         },
         {
-          title: "Application Support",
-          description: "End-to-end assistance with applications, essays, and documentation."
+          title: "Visa Application Support",
+          description: "Step-by-step, reliable assistance through the complex visa application process."
         },
         {
-          title: "Visa Guidance",
-          description: "Expert support through the visa application process with high success rates."
+          title: "Migration Pathways",
+          description: "Tailored migration solutions for your career and life goals in your dream destination."
         },
         {
-          title: "Pre-Departure Prep",
-          description: "Accommodation, insurance, and cultural preparation for your new adventure."
+          title: "Settlement & Pre-Departure",
+          description: "Essential tips and support for accommodation, jobs, and essentials to succeed from day one."
         }
       ]
     },
