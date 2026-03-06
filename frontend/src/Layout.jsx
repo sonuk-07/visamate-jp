@@ -5,10 +5,19 @@ import { Menu, X, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from './utils';
 import { useAuth } from '@/lib/AuthContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import AppointmentForm from './components/AppointmentForm';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [language, setLanguage] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -121,6 +130,7 @@ export default function Layout({ children }) {
               )}
 
               <Button
+                onClick={() => setIsModalOpen(true)}
                 className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-6 rounded-full"
               >
                 {language === 'en' ? 'Get Started' : '相談予約'}
@@ -140,6 +150,22 @@ export default function Layout({ children }) {
             </button>
           </div>
         </div>
+
+        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold text-[#1e3a5f]">
+                {language === 'en' ? 'Book Your Free Consultation' : '無料相談の予約'}
+              </DialogTitle>
+              <DialogDescription>
+                {language === 'en' 
+                  ? 'Tell us about your goals and we will get back to you within 24 hours.' 
+                  : 'あなたの目標について教えてください。24時間以内に折り返しご連絡いたします。'}
+              </DialogDescription>
+            </DialogHeader>
+            <AppointmentForm onSuccess={() => setIsModalOpen(false)} />
+          </DialogContent>
+        </Dialog>
 
         {/* Mobile Menu */}
         <AnimatePresence>
