@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from './utils';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function Layout({ children }) {
+  const { user, logout } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [language, setLanguage] = useState(() => {
@@ -101,6 +103,23 @@ export default function Layout({ children }) {
                 {language === 'en' ? '日本語' : 'English'}
               </Button>
 
+              {user ? (
+                <Button
+                  onClick={logout}
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 rounded-full"
+                >
+                  {language === 'en' ? 'Logout' : 'ログアウト'}
+                </Button>
+              ) : (
+                <Link to="/login">
+                  <Button
+                    className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-6 rounded-full"
+                  >
+                    {language === 'en' ? 'Login' : 'ログイン'}
+                  </Button>
+                </Link>
+              )}
+
               <Button
                 className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-6 rounded-full"
               >
@@ -145,15 +164,26 @@ export default function Layout({ children }) {
                 <div className="flex items-center gap-4 pt-4 border-t">
                   <Button
                     variant="outline"
-                    onClick={toggleLanguage}
-                    className="flex items-center gap-2"
+                    onClick={() => {
+                      toggleLanguage();
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className="flex-1"
                   >
-                    <Globe className="w-4 h-4" />
+                    <Globe className="w-4 h-4 mr-2" />
                     {language === 'en' ? '日本語' : 'English'}
                   </Button>
-                  <Button className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white flex-1">
-                    {language === 'en' ? 'Get Started' : '相談予約'}
-                  </Button>
+                  {user ? (
+                    <Button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="flex-1 bg-red-600">
+                      {language === 'en' ? 'Logout' : 'ログアウト'}
+                    </Button>
+                  ) : (
+                    <Link to="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button className="w-full bg-[#1e3a5f]">
+                        {language === 'en' ? 'Login' : 'ログイン'}
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </div>
             </motion.div>
