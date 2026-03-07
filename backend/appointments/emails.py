@@ -38,6 +38,9 @@ from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
 from datetime import datetime
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def send_appointment_confirmation(appointment):
@@ -226,7 +229,7 @@ This is an automated message. Please do not reply directly to this email.
         email.send(fail_silently=False)
         return True
     except Exception as e:
-        print(f"Error sending confirmation email: {e}")
+        logger.exception('Error sending confirmation email: %s', e)
         return False
 
 
@@ -319,5 +322,5 @@ Manage this appointment in the admin panel.
         )
         return True
     except Exception as e:
-        print(f"Error sending admin notification: {e}")
+        logger.exception('Error sending admin notification: %s', e)
         return False

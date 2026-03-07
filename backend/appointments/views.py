@@ -205,10 +205,11 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         Returns:
             QuerySet: Filtered Appointment objects.
         """
+        qs = Appointment.objects.select_related('slot', 'user')
         if self.request.user.is_staff:
-            return Appointment.objects.all()
+            return qs.all()
         if self.request.user.is_authenticated:
-            return Appointment.objects.filter(user=self.request.user)
+            return qs.filter(user=self.request.user)
         return Appointment.objects.none()
 
     def perform_create(self, serializer):
@@ -304,6 +305,19 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if new_status not in valid_statuses:
             return Response(
                 {'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Validate status transitions
+        VALID_TRANSITIONS = {
+            'pending': ['confirmed', 'cancelled'],
+            'confirmed': ['completed', 'cancelled'],
+            'cancelled': [],
+            'completed': [],
+        }
+        if new_status not in VALID_TRANSITIONS.get(appointment.status, []):
+            return Response(
+                {'error': f'Cannot transition from {appointment.status} to {new_status}.'},
                 status=status.HTTP_400_BAD_REQUEST
             )
         

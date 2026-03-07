@@ -15,10 +15,10 @@ Event types sent to clients:
 """
 
 import json
-from channels.generic.websocket import AsyncJsonWebSocketConsumer
+from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
-class NotificationConsumer(AsyncJsonWebSocketConsumer):
+class NotificationConsumer(AsyncJsonWebsocketConsumer):
     """WebSocket consumer that delivers real-time notifications to users."""
 
     async def connect(self):
@@ -44,6 +44,10 @@ class NotificationConsumer(AsyncJsonWebSocketConsumer):
         
         if hasattr(self, 'user') and self.user and getattr(self.user, 'is_staff', False):
             await self.channel_layer.group_discard('admin_notifications', self.channel_name)
+
+    async def receive_json(self, content, **kwargs):
+        """Server-to-client only; ignore client messages."""
+        pass
 
     # --- Event handlers (called by channel layer group_send) ---
 

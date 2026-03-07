@@ -235,7 +235,9 @@ class Document(models.Model):
     file = models.FileField(
         upload_to='documents/',
         help_text="The uploaded file",
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'])],
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx']),
+        ],
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 

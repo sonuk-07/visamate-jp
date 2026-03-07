@@ -81,10 +81,11 @@ class ApplicantViewSet(viewsets.ModelViewSet):
         return ApplicantSerializer
 
     def get_queryset(self):
+        qs = Applicant.objects.prefetch_related('documents')
         if self.request.user.is_staff:
-            return Applicant.objects.all()
+            return qs.all()
         if self.request.user.is_authenticated:
-            return Applicant.objects.filter(user=self.request.user)
+            return qs.filter(user=self.request.user)
         return Applicant.objects.none()
 
     def perform_create(self, serializer):
@@ -103,6 +104,21 @@ class ApplicantViewSet(viewsets.ModelViewSet):
         valid_statuses = [c[0] for c in Applicant.STATUS_CHOICES]
         if new_status not in valid_statuses:
             return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Validate status transitions
+        VALID_TRANSITIONS = {
+            'applied': ['reviewing', 'rejected'],
+            'reviewing': ['interview', 'rejected'],
+            'interview': ['visa_processing', 'rejected'],
+            'visa_processing': ['approved', 'rejected'],
+            'approved': [],
+            'rejected': [],
+        }
+        if new_status not in VALID_TRANSITIONS.get(application.status, []):
+            return Response(
+                {'error': f'Cannot transition from {application.status} to {new_status}.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
         application.status = new_status
         if admin_notes is not None:
             application.admin_notes = admin_notes
