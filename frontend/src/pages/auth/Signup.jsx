@@ -41,6 +41,10 @@ export default function Signup() {
       toast.error('Passwords do not match');
       return;
     }
+    if (formData.password.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
 
     setLoading(true);
     try {
@@ -54,7 +58,8 @@ export default function Signup() {
       setStep('otp');
       setResendTimer(60);
     } catch (error) {
-      const errorMsg = error.response?.data?.email?.[0] || error.response?.data?.error || 'Registration failed';
+      const data = error.response?.data;
+      const errorMsg = data?.password?.[0] || data?.email?.[0] || data?.error || 'Registration failed';
       toast.error(errorMsg);
     } finally {
       setLoading(false);

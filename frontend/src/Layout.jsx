@@ -12,20 +12,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { createPageUrl } from './utils';
 import { useAuth } from '@/lib/AuthContext';
+import { useLanguage } from '@/components/LanguageContext';
 import Chatbot from '@/components/Chatbot';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { language, toggleLanguage } = useLanguage();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [language, setLanguage] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('language') || 'en';
-    }
-    return 'en';
-  });
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [location.pathname]);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -34,13 +34,6 @@ export default function Layout({ children }) {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const toggleLanguage = () => {
-    const newLang = language === 'en' ? 'ja' : 'en';
-    setLanguage(newLang);
-    localStorage.setItem('language', newLang);
-    window.location.reload();
-  };
 
   const navItems = language === 'en' 
     ? [

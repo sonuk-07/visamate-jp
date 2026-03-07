@@ -1,9 +1,8 @@
-import './App.css'
 import { Toaster } from "@/components/ui/toaster"
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClientInstance } from '@/lib/query-client'
 import { pagesConfig } from './page.config'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, Link } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { WebSocketProvider } from '@/lib/WebSocketContext';
 import Login from '@/pages/auth/Login';
@@ -11,6 +10,7 @@ import Signup from '@/pages/auth/Signup';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 import AdminDashboard from '@/pages/AdminDashboard';
 import DashboardLayout from '@/components/DashboardLayout';
+import { LanguageProvider } from '@/components/LanguageContext';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -102,7 +102,7 @@ const AuthenticatedApp = () => {
           <div className="text-center space-y-4">
             <h1 className="text-7xl font-light text-slate-300">404</h1>
             <h2 className="text-2xl font-medium text-slate-800">Page Not Found</h2>
-            <a href="/" className="inline-block mt-4 px-6 py-2 bg-[#1e3a5f] text-white rounded-full hover:bg-[#2a4a6f]">Go Home</a>
+            <Link to="/" className="inline-block mt-4 px-6 py-2 bg-[#1e3a5f] text-white rounded-full hover:bg-[#2a4a6f]">Go Home</Link>
           </div>
         </div>
       } />
@@ -115,14 +115,16 @@ function App() {
 
   return (
     <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <WebSocketProvider>
-          <Router>
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </WebSocketProvider>
-      </QueryClientProvider>
+      <LanguageProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <WebSocketProvider>
+            <Router>
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </WebSocketProvider>
+        </QueryClientProvider>
+      </LanguageProvider>
     </AuthProvider>
   )
 }
