@@ -226,26 +226,11 @@ export const appointmentSlotsApi = {
  * @namespace applicantsApi
  */
 export const applicantsApi = {
-  /**
-   * Create new applicant profile.
-   * @param {Object} data - Applicant data
-   */
   create: (data) => api.post('applicants/', data),
-  
-  /** List applicants */
   list: () => api.get('applicants/'),
-  
-  /**
-   * Get applicant details.
-   * @param {number} id - Applicant ID
-   */
   get: (id) => api.get(`applicants/${id}/`),
-  
-  /**
-   * Get applicant status (alias for get).
-   * @param {number} id - Applicant ID
-   */
   getStatus: (id) => api.get(`applicants/${id}/`),
+  update: (id, data) => api.patch(`applicants/${id}/`, data),
 };
 
 /**
@@ -345,6 +330,9 @@ export const adminApi = {
   
   /** Update applicant */
   updateApplicant: (id, data) => api.patch(`applicants/${id}/`, data),
+  
+  /** Update applicant status (admin) */
+  updateApplicantStatus: (id, statusData) => api.post(`applicants/${id}/update_status/`, statusData),
   
   /** Delete applicant */
   deleteApplicant: (id) => api.delete(`applicants/${id}/`),

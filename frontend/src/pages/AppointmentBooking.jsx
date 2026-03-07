@@ -404,7 +404,7 @@ export default function AppointmentBooking() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-white pt-24 pb-12">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] pt-24 pb-12">
       <div className="container mx-auto px-6 lg:px-12">
         {/* Header */}
         <div className="mb-8">
@@ -568,8 +568,7 @@ export default function AppointmentBooking() {
               </div>
 
               {/* Booking Summary */}
-              <Card className="mb-6 border-[#c9a962]/20 bg-[#faf8f5]">
-                <CardContent className="p-6">
+              <div className="mb-6 bg-[#faf8f5] rounded-2xl border border-[#c9a962]/20 p-6">
                   <h3 className="font-semibold text-[#1e3a5f] mb-4">Booking Summary</h3>
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between">
@@ -591,22 +590,21 @@ export default function AppointmentBooking() {
                       </span>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+              </div>
 
               {/* Contact Form */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Your Details</CardTitle>
-                  <CardDescription>Please provide your contact information</CardDescription>
-                </CardHeader>
-                <CardContent>
+              <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
+                <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-5">
+                  <h3 className="text-lg font-bold text-white">Your Details</h3>
+                  <p className="text-white/70 text-sm">Please provide your contact information</p>
+                </div>
+                <div className="p-8">
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="full_name">Full Name</Label>
+                        <label className="text-sm font-medium text-[#1e3a5f] ml-1">Full Name</label>
                         <div className="relative">
-                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                           <Input
                             id="full_name"
                             name="full_name"
@@ -614,14 +612,14 @@ export default function AppointmentBooking() {
                             value={formData.full_name}
                             onChange={handleInputChange}
                             required
-                            className="pl-11 h-12 rounded-xl"
+                            className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
                           />
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="email">Email Address</Label>
+                        <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email Address</label>
                         <div className="relative">
-                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                           <Input
                             id="email"
                             name="email"
@@ -630,16 +628,16 @@ export default function AppointmentBooking() {
                             value={formData.email}
                             onChange={handleInputChange}
                             required
-                            className="pl-11 h-12 rounded-xl"
+                            className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
                           />
                         </div>
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="phone">Phone Number</Label>
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Phone Number</label>
                       <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input
                           id="phone"
                           name="phone"
@@ -647,22 +645,22 @@ export default function AppointmentBooking() {
                           value={formData.phone}
                           onChange={handleInputChange}
                           required
-                          className="pl-11 h-12 rounded-xl"
+                          className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="message">Additional Notes (Optional)</Label>
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Additional Notes (Optional)</label>
                       <div className="relative">
-                        <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-gray-400" />
+                        <MessageSquare className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
                         <Textarea
                           id="message"
                           name="message"
                           placeholder="Any specific questions or topics you'd like to discuss..."
                           value={formData.message}
                           onChange={handleInputChange}
-                          className="pl-11 min-h-[100px] rounded-xl"
+                          className="pl-12 min-h-[100px] rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
                         />
                       </div>
                     </div>
@@ -670,7 +668,7 @@ export default function AppointmentBooking() {
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="w-full h-12 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-xl text-base font-semibold"
+                      className="w-full h-12 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-xl text-base font-semibold shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30 transition-all duration-300"
                     >
                       {loading ? (
                         <div className="flex items-center gap-2">
@@ -685,8 +683,8 @@ export default function AppointmentBooking() {
                       )}
                     </Button>
                   </form>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -709,8 +707,7 @@ export default function AppointmentBooking() {
                   Your appointment has been successfully scheduled. We'll send you a confirmation email shortly.
                 </p>
 
-                <Card className="mb-6 bg-[#faf8f5] border-[#c9a962]/20 text-left">
-                  <CardContent className="p-6 space-y-3">
+                <div className="mb-6 bg-[#faf8f5] rounded-2xl border border-[#c9a962]/20 text-left p-6 space-y-3">
                     <div className="flex justify-between text-sm">
                       <span className="text-gray-500">Service</span>
                       <span className="font-medium text-[#1e3a5f]">
@@ -729,20 +726,19 @@ export default function AppointmentBooking() {
                         {selectedSlot?.start_time?.slice(0, 5)}
                       </span>
                     </div>
-                  </CardContent>
-                </Card>
+                </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
                   <Button
                     variant="outline"
                     onClick={() => navigate('/Dashboard')}
-                    className="flex-1"
+                    className="flex-1 h-12 rounded-xl border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f]/5"
                   >
                     View My Appointments
                   </Button>
                   <Button
                     onClick={() => navigate('/')}
-                    className="flex-1 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white"
+                    className="flex-1 h-12 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-xl shadow-lg shadow-[#1e3a5f]/20"
                   >
                     Back to Home
                   </Button>

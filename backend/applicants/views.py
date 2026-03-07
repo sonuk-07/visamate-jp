@@ -27,9 +27,11 @@ API Endpoints:
     DELETE /api/documents/{id}/  - Delete document
 """
 
-from rest_framework import viewsets, permissions
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 from .models import Applicant, Document
-from .serializers import ApplicantSerializer, DocumentSerializer
+from .serializers import ApplicantSerializer, AdminApplicantSerializer, DocumentSerializer
 
 
 class ApplicantViewSet(viewsets.ModelViewSet):
@@ -72,22 +74,40 @@ class ApplicantViewSet(viewsets.ModelViewSet):
              return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
+    def get_serializer_class(self):
+        if self.request.user.is_staff:
+            return AdminApplicantSerializer
+        return ApplicantSerializer
+
     def get_queryset(self):
-        """
-        Filter queryset based on user role.
-        
-        - Staff: See all applicants
-        - Authenticated user: See only their applicant profile
-        - Anonymous: Empty queryset
-        
-        Returns:
-            QuerySet: Filtered Applicant objects.
-        """
         if self.request.user.is_staff:
             return Applicant.objects.all()
         if self.request.user.is_authenticated:
             return Applicant.objects.filter(user=self.request.user)
         return Applicant.objects.none()
+
+    def perform_create(self, serializer):
+        if self.request.user.is_authenticated:
+            serializer.save(user=self.request.user)
+        else:
+            serializer.save()
+
+    @action(detail=True, methods=['post'])
+    def update_status(self, request, pk=None):
+        if not request.user.is_staff:
+            return Response({'error': 'Admin only'}, status=status.HTTP_403_FORBIDDEN)
+        application = self.get_object()
+        new_status = request.data.get('status')
+        admin_notes = request.data.get('admin_notes')
+        valid_statuses = [c[0] for c in Applicant.STATUS_CHOICES]
+        if new_status not in valid_statuses:
+            return Response({'error': 'Invalid status'}, status=status.HTTP_400_BAD_REQUEST)
+        application.status = new_status
+        if admin_notes is not None:
+            application.admin_notes = admin_notes
+        application.save()
+        serializer = self.get_serializer(application)
+        return Response(serializer.data)
 
 
 class DocumentViewSet(viewsets.ModelViewSet):

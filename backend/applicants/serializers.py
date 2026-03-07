@@ -95,4 +95,12 @@ class ApplicantSerializer(serializers.ModelSerializer):
     class Meta:
         model = Applicant
         fields = '__all__'
-        read_only_fields = ('user', 'status')
+        read_only_fields = ('user', 'status', 'admin_notes')
+
+
+class AdminApplicantSerializer(serializers.ModelSerializer):
+    documents = DocumentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Applicant
+        fields = '__all__'

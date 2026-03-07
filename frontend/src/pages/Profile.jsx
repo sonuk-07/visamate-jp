@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, ArrowLeft, Save, Loader2, Lock, Eye, EyeOff } from 'lucide-react';
+import { User, ArrowLeft, Save, Loader2, Lock, Eye, EyeOff, Mail, AtSign } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from '@/lib/AuthContext';
 import { authApi } from '@/api/djangoClient';
 import { toast } from 'sonner';
@@ -109,11 +108,16 @@ export default function Profile() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] to-white pt-24">
-      <div className="container mx-auto px-6 lg:px-12 py-8 max-w-2xl">
+    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] pt-24 pb-12">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#1e3a5f]/5 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 -left-20 w-72 h-72 bg-[#c9a962]/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="container mx-auto px-6 lg:px-12 py-8 max-w-2xl relative z-10">
         {/* Header */}
         <div className="mb-8">
-          <Link to="/Dashboard" className="inline-flex items-center text-[#1e3a5f] hover:text-[#c9a962] mb-4">
+          <Link to="/Dashboard" className="inline-flex items-center text-[#1e3a5f] hover:text-[#c9a962] mb-4 transition-colors">
             <ArrowLeft className="w-5 h-5 mr-2" />
             Back to Dashboard
           </Link>
@@ -121,96 +125,99 @@ export default function Profile() {
           <p className="text-gray-600">Manage your profile and security</p>
         </div>
 
-        <div className="space-y-6">
+        <div className="space-y-8">
           {/* Profile Information Card */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
+            className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden"
           >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[#1e3a5f] rounded-full flex items-center justify-center">
-                    <span className="text-2xl font-bold text-white">
-                      {(formData.first_name || formData.username || '?')[0].toUpperCase()}
-                    </span>
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl text-[#1e3a5f]">Profile Information</CardTitle>
-                    <CardDescription>Update your personal details</CardDescription>
-                  </div>
+            <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 flex items-center justify-center">
+                  <span className="text-2xl font-bold text-white">
+                    {(formData.first_name || formData.username || '?')[0].toUpperCase()}
+                  </span>
                 </div>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="grid md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">First Name</label>
-                      <Input
-                        name="first_name"
-                        value={formData.first_name}
-                        onChange={handleChange}
-                        placeholder="Enter your first name"
-                        className="border-gray-200 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Last Name</label>
-                      <Input
-                        name="last_name"
-                        value={formData.last_name}
-                        onChange={handleChange}
-                        placeholder="Enter your last name"
-                        className="border-gray-200 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
-                      />
-                    </div>
-                  </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Profile Information</h2>
+                  <p className="text-white/70 text-sm">Update your personal details</p>
+                </div>
+              </div>
+            </div>
+            <form onSubmit={handleSubmit} className="p-8 space-y-5">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[#1e3a5f] ml-1">First Name</label>
+                  <Input
+                    name="first_name"
+                    value={formData.first_name}
+                    onChange={handleChange}
+                    placeholder="Enter your first name"
+                    className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-[#1e3a5f] ml-1">Last Name</label>
+                  <Input
+                    name="last_name"
+                    value={formData.last_name}
+                    onChange={handleChange}
+                    placeholder="Enter your last name"
+                    className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+                  />
+                </div>
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Username</label>
-                    <Input
-                      name="username"
-                      value={formData.username}
-                      onChange={handleChange}
-                      placeholder="Enter your username"
-                      className="border-gray-200 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
-                    />
-                  </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Username</label>
+                <div className="relative">
+                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    name="username"
+                    value={formData.username}
+                    onChange={handleChange}
+                    placeholder="Enter your username"
+                    className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+                  />
+                </div>
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Email Address</label>
-                    <Input
-                      name="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      placeholder="Enter your email"
-                      className="border-gray-200 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
-                    />
-                  </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email Address</label>
+                <div className="relative">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleChange}
+                    placeholder="Enter your email"
+                    className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+                  />
+                </div>
+              </div>
 
-                  <div className="pt-2">
-                    <Button
-                      type="submit"
-                      disabled={loading}
-                      className="w-full bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white py-6"
-                    >
-                      {loading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Saving...
-                        </>
-                      ) : (
-                        <>
-                          <Save className="w-4 h-4 mr-2" />
-                          Save Changes
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full h-12 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-xl text-base font-semibold shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30 transition-all duration-300"
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-5 h-5 mr-2" />
+                      Save Changes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
           </motion.div>
 
           {/* Change Password Card */}
@@ -218,94 +225,94 @@ export default function Profile() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden"
           >
-            <Card>
-              <CardHeader>
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-[#c9a962] rounded-full flex items-center justify-center">
-                    <Lock className="w-8 h-8 text-white" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-xl text-[#1e3a5f]">Change Password</CardTitle>
-                    <CardDescription>Keep your account secure</CardDescription>
-                  </div>
+            <div className="bg-gradient-to-r from-[#c9a962] to-[#b89852] px-8 py-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 flex items-center justify-center">
+                  <Lock className="w-7 h-7 text-white" />
                 </div>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handlePasswordSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Current Password</label>
-                    <div className="relative">
-                      <Input
-                        name="current_password"
-                        type={showCurrentPassword ? 'text' : 'password'}
-                        value={passwordData.current_password}
-                        onChange={handlePasswordChange}
-                        placeholder="Enter current password"
-                        className="border-gray-200 focus:ring-[#1e3a5f] focus:border-[#1e3a5f] pr-10"
-                      />
-                      <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
+                <div>
+                  <h2 className="text-xl font-bold text-white">Change Password</h2>
+                  <p className="text-white/70 text-sm">Keep your account secure</p>
+                </div>
+              </div>
+            </div>
+            <form onSubmit={handlePasswordSubmit} className="p-8 space-y-5">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Current Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    name="current_password"
+                    type={showCurrentPassword ? 'text' : 'password'}
+                    value={passwordData.current_password}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter current password"
+                    className="pl-12 pr-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+                  />
+                  <button type="button" onClick={() => setShowCurrentPassword(!showCurrentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">New Password</label>
-                    <div className="relative">
-                      <Input
-                        name="new_password"
-                        type={showNewPassword ? 'text' : 'password'}
-                        value={passwordData.new_password}
-                        onChange={handlePasswordChange}
-                        placeholder="Enter new password (min 8 characters)"
-                        className="border-gray-200 focus:ring-[#1e3a5f] focus:border-[#1e3a5f] pr-10"
-                      />
-                      <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#1e3a5f] ml-1">New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    name="new_password"
+                    type={showNewPassword ? 'text' : 'password'}
+                    value={passwordData.new_password}
+                    onChange={handlePasswordChange}
+                    placeholder="Enter new password (min 8 characters)"
+                    className="pl-12 pr-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+                  />
+                  <button type="button" onClick={() => setShowNewPassword(!showNewPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Confirm New Password</label>
-                    <div className="relative">
-                      <Input
-                        name="confirm_password"
-                        type={showConfirmPassword ? 'text' : 'password'}
-                        value={passwordData.confirm_password}
-                        onChange={handlePasswordChange}
-                        placeholder="Confirm new password"
-                        className="border-gray-200 focus:ring-[#1e3a5f] focus:border-[#1e3a5f] pr-10"
-                      />
-                      <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
-                    </div>
-                  </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Confirm New Password</label>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Input
+                    name="confirm_password"
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    value={passwordData.confirm_password}
+                    onChange={handlePasswordChange}
+                    placeholder="Confirm new password"
+                    className="pl-12 pr-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+                  />
+                  <button type="button" onClick={() => setShowConfirmPassword(!showConfirmPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+              </div>
 
-                  <div className="pt-2">
-                    <Button
-                      type="submit"
-                      disabled={passwordLoading || !passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password}
-                      className="w-full bg-[#c9a962] hover:bg-[#b89852] text-white py-6"
-                    >
-                      {passwordLoading ? (
-                        <>
-                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                          Changing...
-                        </>
-                      ) : (
-                        <>
-                          <Lock className="w-4 h-4 mr-2" />
-                          Change Password
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
+              <div className="pt-2">
+                <Button
+                  type="submit"
+                  disabled={passwordLoading || !passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password}
+                  className="w-full h-12 bg-[#c9a962] hover:bg-[#b89852] text-white rounded-xl text-base font-semibold shadow-lg shadow-[#c9a962]/20 hover:shadow-xl hover:shadow-[#c9a962]/30 transition-all duration-300"
+                >
+                  {passwordLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                      Changing...
+                    </>
+                  ) : (
+                    <>
+                      <Lock className="w-5 h-5 mr-2" />
+                      Change Password
+                    </>
+                  )}
+                </Button>
+              </div>
+            </form>
           </motion.div>
         </div>
       </div>

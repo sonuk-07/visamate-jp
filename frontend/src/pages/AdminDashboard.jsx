@@ -726,7 +726,7 @@ export default function AdminDashboard() {
           <TabsContent value="applicants">
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>All Applicants</CardTitle>
+                <CardTitle>All Applications</CardTitle>
                 <Button onClick={loadApplicants} variant="outline" size="sm">
                   <RefreshCw className="w-4 h-4 mr-2" />
                   Refresh
@@ -738,30 +738,54 @@ export default function AdminDashboard() {
                     <thead>
                       <tr className="border-b">
                         <th className="text-left py-3 px-4">Name</th>
-                        <th className="text-left py-3 px-4">Email</th>
-                        <th className="text-left py-3 px-4">Phone</th>
+                        <th className="text-left py-3 px-4">Destination</th>
+                        <th className="text-left py-3 px-4">Visa Type</th>
                         <th className="text-left py-3 px-4">Status</th>
-                        <th className="text-left py-3 px-4">Documents</th>
+                        <th className="text-left py-3 px-4">Applied</th>
                         <th className="text-left py-3 px-4">Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {applicants.map((app) => (
                         <tr key={app.id} className="border-b hover:bg-gray-50">
-                          <td className="py-3 px-4 font-medium">
-                            {app.first_name} {app.last_name}
-                          </td>
-                          <td className="py-3 px-4">{app.email}</td>
-                          <td className="py-3 px-4">{app.phone}</td>
                           <td className="py-3 px-4">
-                            <Badge className={statusColors[app.status]}>
-                              {app.status}
-                            </Badge>
+                            <div className="font-medium">{app.first_name} {app.last_name}</div>
+                            <div className="text-xs text-gray-500">{app.email}</div>
                           </td>
                           <td className="py-3 px-4">
-                            <Badge variant="outline">
-                              {app.documents?.length || 0} files
-                            </Badge>
+                            {app.destination_country === 'japan' ? '🇯🇵 Japan' : app.destination_country === 'australia' ? '🇦🇺 Australia' : app.destination_country}
+                          </td>
+                          <td className="py-3 px-4 text-sm">
+                            {(app.visa_type || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                          </td>
+                          <td className="py-3 px-4">
+                            <Select
+                              value={app.status}
+                              onValueChange={async (newStatus) => {
+                                try {
+                                  await adminApi.updateApplicantStatus(app.id, { status: newStatus });
+                                  toast.success('Status updated');
+                                  loadApplicants();
+                                } catch {
+                                  toast.error('Failed to update status');
+                                }
+                              }}
+                            >
+                              <SelectTrigger className="w-[160px] h-8 text-xs">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="applied">Applied</SelectItem>
+                                <SelectItem value="reviewing">Reviewing</SelectItem>
+                                <SelectItem value="interview">Interview</SelectItem>
+                                <SelectItem value="visa_processing">Visa Processing</SelectItem>
+                                <SelectItem value="approved">Approved</SelectItem>
+                                <SelectItem value="rejected">Rejected</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="py-3 px-4 text-sm text-gray-500">
+                            {app.created_at ? format(new Date(app.created_at), 'PP') : '-'}
                           </td>
                           <td className="py-3 px-4">
                             <div className="flex gap-2">
@@ -787,7 +811,7 @@ export default function AdminDashboard() {
                     </tbody>
                   </table>
                   {applicants.length === 0 && (
-                    <p className="text-gray-500 text-center py-8">No applicants yet</p>
+                    <p className="text-gray-500 text-center py-8">No applications yet</p>
                   )}
                 </div>
               </CardContent>

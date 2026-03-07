@@ -55,6 +55,7 @@ import PreDeparturePrep from './pages/PreDeparturePrep';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import AppointmentBooking from './pages/AppointmentBooking';
+import NewApplication from './pages/NewApplication';
 import __Layout from './Layout.jsx';
 
 
@@ -67,6 +68,7 @@ export const PAGES = {
     "Dashboard": Dashboard,
     "profile": Profile,
     "AppointmentBooking": AppointmentBooking,
+    "NewApplication": NewApplication,
 }
 
 export const pagesConfig = {

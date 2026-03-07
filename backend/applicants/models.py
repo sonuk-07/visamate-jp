@@ -81,11 +81,33 @@ class Applicant(models.Model):
         ('rejected', 'Rejected'),
     ]
 
-    user = models.OneToOneField(
+    COUNTRY_CHOICES = [
+        ('japan', 'Japan'),
+        ('australia', 'Australia'),
+    ]
+
+    VISA_TYPE_CHOICES = [
+        ('student_visa', 'Student Visa'),
+        ('work_visa', 'Work Visa'),
+        ('skilled_worker', 'Specified Skilled Worker'),
+        ('skilled_migration', 'Skilled Migration'),
+        ('working_holiday', 'Working Holiday'),
+    ]
+
+    EDUCATION_CHOICES = [
+        ('high_school', 'High School'),
+        ('bachelors', "Bachelor's Degree"),
+        ('masters', "Master's Degree"),
+        ('phd', 'PhD'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(
         User, 
         on_delete=models.CASCADE, 
         null=True, 
         blank=True,
+        related_name='applications',
         help_text="Linked user account for registered applicants"
     )
     first_name = models.CharField(
@@ -97,12 +119,40 @@ class Applicant(models.Model):
         help_text="Applicant's last name"
     )
     email = models.EmailField(
-        unique=True,
-        help_text="Unique email address for communication"
+        help_text="Email address for communication"
     )
     phone = models.CharField(
         max_length=20,
         help_text="Contact phone number"
+    )
+    destination_country = models.CharField(
+        max_length=20,
+        choices=COUNTRY_CHOICES,
+        default='japan',
+        help_text="Destination country"
+    )
+    visa_type = models.CharField(
+        max_length=30,
+        choices=VISA_TYPE_CHOICES,
+        default='student_visa',
+        help_text="Type of visa being applied for"
+    )
+    education_level = models.CharField(
+        max_length=20,
+        choices=EDUCATION_CHOICES,
+        blank=True,
+        default='',
+        help_text="Current education level"
+    )
+    preferred_start_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Preferred program start date"
+    )
+    message = models.TextField(
+        blank=True,
+        default='',
+        help_text="Additional notes or message"
     )
     passport_number = models.CharField(
         max_length=50, 
@@ -115,6 +165,11 @@ class Applicant(models.Model):
         choices=STATUS_CHOICES, 
         default='applied',
         help_text="Current status of the application"
+    )
+    admin_notes = models.TextField(
+        blank=True,
+        default='',
+        help_text="Admin notes visible to applicant"
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
