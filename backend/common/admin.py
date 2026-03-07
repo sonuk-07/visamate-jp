@@ -15,6 +15,7 @@ class EmailOTPAdmin(admin.ModelAdmin):
     list_display = ('email', 'purpose', 'is_used', 'created_at')
     list_filter = ('purpose', 'is_used')
     readonly_fields = ('created_at',)
+    exclude = ('otp_code',)
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):

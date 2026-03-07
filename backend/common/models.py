@@ -27,6 +27,14 @@ Usage:
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import FileExtensionValidator
+from django.core.exceptions import ValidationError
+
+
+def validate_file_size(value):
+    """Reject files larger than 10 MB."""
+    max_size = 10 * 1024 * 1024
+    if value.size > max_size:
+        raise ValidationError('File size must not exceed 10 MB.')
 
 
 class UserProfile(models.Model):
@@ -60,7 +68,10 @@ class UserDocument(models.Model):
     title = models.CharField(max_length=255)
     file = models.FileField(
         upload_to='user_documents/',
-        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'])],
+        validators=[
+            FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx']),
+            validate_file_size,
+        ],
     )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
@@ -191,7 +202,7 @@ class EmailOTP(models.Model):
         ('password_reset', 'Password Reset'),
     ]
 
-    email = models.EmailField()
+    email = models.EmailField(db_index=True)
     otp_code = models.CharField(max_length=6)
     purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
     is_used = models.BooleanField(default=False)
@@ -206,4 +217,4 @@ class EmailOTP(models.Model):
         return timezone.now() > self.created_at + datetime.timedelta(minutes=10)
 
     def __str__(self):
-        return f"{self.email} - {self.purpose} - {self.otp_code}"
+        return f"{self.email} - {self.purpose}"
