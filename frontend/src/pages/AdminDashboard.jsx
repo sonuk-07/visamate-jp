@@ -459,6 +459,12 @@ export default function AdminDashboard() {
                           <p className="text-sm text-gray-500">
                             {serviceLabels[apt.service_type] || apt.service_type}
                           </p>
+                          {apt.phone && (
+                            <p className="text-sm text-gray-500 flex items-center gap-1">
+                              <Phone className="w-3 h-3" />
+                              {apt.phone}
+                            </p>
+                          )}
                         </div>
                         <Badge className={statusColors[apt.status]}>
                           {apt.status}
@@ -528,6 +534,12 @@ export default function AdminDashboard() {
                             <div>
                               <p className="font-medium">{apt.full_name}</p>
                               <p className="text-sm text-gray-500">{apt.email}</p>
+                              {apt.phone && (
+                                <p className="text-sm text-gray-500 flex items-center gap-1">
+                                  <Phone className="w-3 h-3" />
+                                  {apt.phone}
+                                </p>
+                              )}
                             </div>
                           </td>
                           <td className="py-3 px-4">
@@ -751,6 +763,12 @@ export default function AdminDashboard() {
                           <td className="py-3 px-4">
                             <div className="font-medium">{app.first_name} {app.last_name}</div>
                             <div className="text-xs text-gray-500">{app.email}</div>
+                            {app.phone && (
+                              <div className="text-xs text-gray-500 flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                {app.phone}
+                              </div>
+                            )}
                           </td>
                           <td className="py-3 px-4">
                             {app.destination_country === 'japan' ? '🇯🇵 Japan' : app.destination_country === 'australia' ? '🇦🇺 Australia' : app.destination_country}

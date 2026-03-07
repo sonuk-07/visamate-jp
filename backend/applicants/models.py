@@ -144,6 +144,12 @@ class Applicant(models.Model):
         default='',
         help_text="Current education level"
     )
+    preferred_course = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+        help_text="Preferred course or program of study"
+    )
     preferred_start_date = models.DateField(
         null=True,
         blank=True,

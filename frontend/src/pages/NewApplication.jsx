@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { ArrowLeft, Send, Globe, GraduationCap, FileText, User, Mail, Phone, CalendarDays } from 'lucide-react';
+import {
+  ArrowLeft, ArrowRight, Send, Globe, GraduationCap, FileText, User, Mail, Phone,
+  CalendarDays, Upload, X, Check, CreditCard, BookOpen, Eye, Loader2
+} from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -13,8 +16,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useAuth } from '@/lib/AuthContext';
-import { applicantsApi } from '@/api/djangoClient';
+import { applicantsApi, documentsApi } from '@/api/djangoClient';
 import { toast } from 'sonner';
+import PhoneInput from '@/components/PhoneInput';
 
 const VISA_TYPES_BY_COUNTRY = {
   japan: [
@@ -37,10 +41,39 @@ const EDUCATION_LEVELS = [
   { value: 'other', label: 'Other' },
 ];
 
+const REQUIRED_DOCUMENTS = [
+  { key: 'passport', label: 'Passport Copy', description: 'Clear copy of your passport bio page' },
+  { key: 'photo', label: 'Passport Size Photo', description: 'Recent passport-sized photograph' },
+  { key: 'academic', label: 'Academic Transcripts', description: 'Latest academic transcripts/certificates' },
+  { key: 'english_test', label: 'Language Test Score', description: 'IELTS/TOEFL/JLPT score report (if available)' },
+  { key: 'financial', label: 'Financial Documents', description: 'Bank statement or sponsor letter' },
+  { key: 'cv', label: 'CV / Resume', description: 'Updated curriculum vitae' },
+];
+
+const STEPS = [
+  { key: 'personal', label: 'Personal Details', icon: User },
+  { key: 'program', label: 'Program Details', icon: GraduationCap },
+  { key: 'documents', label: 'Documents', icon: Upload },
+  { key: 'review', label: 'Review & Pay', icon: Eye },
+];
+
+const COUNTRY_LABELS = { japan: '🇯🇵 Japan', australia: '🇦🇺 Australia' };
+const VISA_LABELS = {
+  student_visa: 'Student Visa', work_visa: 'Work Visa', skilled_worker: 'Specified Skilled Worker',
+  skilled_migration: 'Skilled Migration', working_holiday: 'Working Holiday',
+};
+const EDUCATION_LABELS = {
+  high_school: 'High School', bachelors: "Bachelor's Degree", masters: "Master's Degree",
+  phd: 'PhD', other: 'Other',
+};
+
 export default function NewApplication() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const [step, setStep] = useState(0);
   const [submitting, setSubmitting] = useState(false);
+  const fileInputRefs = useRef({});
+
   const [form, setForm] = useState({
     first_name: user?.first_name || '',
     last_name: user?.last_name || '',
@@ -49,9 +82,12 @@ export default function NewApplication() {
     destination_country: '',
     visa_type: '',
     education_level: '',
+    preferred_course: '',
     preferred_start_date: '',
     message: '',
   });
+
+  const [documents, setDocuments] = useState({});
 
   const handleChange = (field, value) => {
     setForm(prev => {
@@ -63,15 +99,71 @@ export default function NewApplication() {
     });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    if (!form.first_name || !form.last_name || !form.email || !form.phone || !form.destination_country || !form.visa_type) {
-      toast.error('Please fill in all required fields');
-      return;
+  const handleFileSelect = (docKey, file) => {
+    if (file) {
+      if (file.size > 10 * 1024 * 1024) {
+        toast.error('File size must be under 10MB');
+        return;
+      }
+      setDocuments(prev => ({ ...prev, [docKey]: file }));
     }
+  };
+
+  const removeFile = (docKey) => {
+    setDocuments(prev => {
+      const updated = { ...prev };
+      delete updated[docKey];
+      return updated;
+    });
+  };
+
+  const validateStep = (stepIndex) => {
+    if (stepIndex === 0) {
+      if (!form.first_name || !form.last_name || !form.email || !form.phone) {
+        toast.error('Please fill in all required personal details');
+        return false;
+      }
+    }
+    if (stepIndex === 1) {
+      if (!form.destination_country || !form.visa_type) {
+        toast.error('Please select destination country and visa type');
+        return false;
+      }
+    }
+    return true;
+  };
+
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep(prev => Math.min(prev + 1, STEPS.length - 1));
+    }
+  };
+
+  const prevStep = () => {
+    setStep(prev => Math.max(prev - 1, 0));
+  };
+
+  const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      await applicantsApi.create(form);
+      const applicationData = { ...form };
+      if (!applicationData.preferred_start_date) {
+        delete applicationData.preferred_start_date;
+      }
+      const response = await applicantsApi.create(applicationData);
+      const applicantId = response.data.id;
+
+      // Upload documents
+      const docEntries = Object.entries(documents);
+      for (const [docKey, file] of docEntries) {
+        const docLabel = REQUIRED_DOCUMENTS.find(d => d.key === docKey)?.label || docKey;
+        const formData = new FormData();
+        formData.append('applicant', applicantId);
+        formData.append('title', docLabel);
+        formData.append('file', file);
+        await documentsApi.upload(formData);
+      }
+
       toast.success('Application submitted successfully!');
       navigate('/Dashboard');
     } catch (error) {
@@ -88,10 +180,12 @@ export default function NewApplication() {
   };
 
   const visaTypes = form.destination_country ? VISA_TYPES_BY_COUNTRY[form.destination_country] : [];
+  const uploadedCount = Object.keys(documents).length;
+
+  const inputClass = "h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] pt-24 pb-12">
-      {/* Background decoration */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#1e3a5f]/5 rounded-full blur-3xl" />
         <div className="absolute bottom-20 -left-20 w-72 h-72 bg-[#c9a962]/10 rounded-full blur-3xl" />
@@ -110,175 +204,367 @@ export default function NewApplication() {
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-8">
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-4 mb-6">
               <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 flex items-center justify-center">
                 <FileText className="w-7 h-7 text-white" />
               </div>
               <div>
                 <h1 className="text-2xl font-bold text-white">New Application</h1>
-                <p className="text-white/70 text-sm mt-1">Submit your visa application — we'll guide you through each step</p>
+                <p className="text-white/70 text-sm mt-1">Step {step + 1} of {STEPS.length} — {STEPS[step].label}</p>
               </div>
+            </div>
+
+            {/* Step Progress */}
+            <div className="flex items-center gap-1">
+              {STEPS.map((s, i) => {
+                const StepIcon = s.icon;
+                const isActive = i === step;
+                const isCompleted = i < step;
+                return (
+                  <div key={s.key} className="flex-1 flex flex-col items-center gap-1.5">
+                    <div className={`w-full h-1.5 rounded-full transition-all ${
+                      isCompleted ? 'bg-[#c9a962]' : isActive ? 'bg-white' : 'bg-white/20'
+                    }`} />
+                    <div className="flex items-center gap-1.5">
+                      <StepIcon className={`w-3.5 h-3.5 ${isActive ? 'text-white' : isCompleted ? 'text-[#c9a962]' : 'text-white/40'}`} />
+                      <span className={`text-xs hidden sm:inline ${isActive ? 'text-white font-medium' : isCompleted ? 'text-[#c9a962]' : 'text-white/40'}`}>
+                        {s.label}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Form */}
-          <form onSubmit={handleSubmit} className="p-8 space-y-8">
-            {/* Personal Details Section */}
-            <div className="space-y-5">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-10 h-10 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center">
-                  <User className="w-5 h-5 text-[#1e3a5f]" />
-                </div>
-                <h3 className="font-semibold text-[#1e3a5f] text-lg">Personal Details</h3>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#1e3a5f] ml-1">First Name *</label>
-                  <Input
-                    value={form.first_name}
-                    onChange={e => handleChange('first_name', e.target.value)}
-                    className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#1e3a5f] ml-1">Last Name *</label>
-                  <Input
-                    value={form.last_name}
-                    onChange={e => handleChange('last_name', e.target.value)}
-                    className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email *</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    type="email"
-                    value={form.email}
-                    onChange={e => handleChange('email', e.target.value)}
-                    className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
-                    required
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Phone Number *</label>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    value={form.phone}
-                    onChange={e => handleChange('phone', e.target.value)}
-                    placeholder="+977-XXXXXXXXXX"
-                    className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
-                    required
-                  />
-                </div>
-              </div>
-            </div>
+          {/* Step Content */}
+          <div className="p-8">
+            <AnimatePresence mode="wait">
+              {/* Step 1: Personal Details */}
+              {step === 0 && (
+                <motion.div key="personal" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center">
+                      <User className="w-5 h-5 text-[#1e3a5f]" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[#1e3a5f] text-lg">Personal Details</h3>
+                      <p className="text-sm text-gray-500">Pre-filled from your account</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">First Name <span className="text-red-500">*</span></label>
+                      <Input value={form.first_name} onChange={e => handleChange('first_name', e.target.value)} className={inputClass} />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Last Name <span className="text-red-500">*</span></label>
+                      <Input value={form.last_name} onChange={e => handleChange('last_name', e.target.value)} className={inputClass} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Input type="email" value={form.email} onChange={e => handleChange('email', e.target.value)} className={`pl-12 ${inputClass}`} />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Phone Number <span className="text-red-500">*</span></label>
+                    <PhoneInput value={form.phone} onChange={(val) => handleChange('phone', val)} />
+                  </div>
+                </motion.div>
+              )}
 
-            <div className="border-t border-gray-100" />
-
-            {/* Program Details Section */}
-            <div className="space-y-5">
-              <div className="flex items-center gap-3 mb-1">
-                <div className="w-10 h-10 bg-[#c9a962]/10 rounded-xl flex items-center justify-center">
-                  <Globe className="w-5 h-5 text-[#c9a962]" />
-                </div>
-                <h3 className="font-semibold text-[#1e3a5f] text-lg">Program Details</h3>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Destination Country *</label>
-                <Select value={form.destination_country} onValueChange={v => handleChange('destination_country', v)}>
-                  <SelectTrigger className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]">
-                    <SelectValue placeholder="Select your destination" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="japan">🇯🇵 Japan</SelectItem>
-                    <SelectItem value="australia">🇦🇺 Australia</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Visa Type *</label>
-                <Select
-                  value={form.visa_type}
-                  onValueChange={v => handleChange('visa_type', v)}
-                  disabled={!form.destination_country}
-                >
-                  <SelectTrigger className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]">
-                    <SelectValue placeholder={form.destination_country ? "Select visa type" : "Select a country first"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {visaTypes.map(vt => (
-                      <SelectItem key={vt.value} value={vt.value}>{vt.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#1e3a5f] ml-1">Education Level</label>
-                  <Select value={form.education_level} onValueChange={v => handleChange('education_level', v)}>
-                    <SelectTrigger className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]">
-                      <SelectValue placeholder="Select level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {EDUCATION_LEVELS.map(el => (
-                        <SelectItem key={el.value} value={el.value}>{el.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-[#1e3a5f] ml-1">Preferred Start Date</label>
-                  <div className="relative">
-                    <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
-                    <Input
-                      type="date"
-                      value={form.preferred_start_date}
-                      onChange={e => handleChange('preferred_start_date', e.target.value)}
-                      className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
+              {/* Step 2: Program Details */}
+              {step === 1 && (
+                <motion.div key="program" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-[#c9a962]/10 rounded-xl flex items-center justify-center">
+                      <GraduationCap className="w-5 h-5 text-[#c9a962]" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[#1e3a5f] text-lg">Program Details</h3>
+                      <p className="text-sm text-gray-500">Tell us about your study/work plan</p>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Destination Country <span className="text-red-500">*</span></label>
+                    <Select value={form.destination_country} onValueChange={v => handleChange('destination_country', v)}>
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder="Select your destination" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="japan">🇯🇵 Japan</SelectItem>
+                        <SelectItem value="australia">🇦🇺 Australia</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Visa Type <span className="text-red-500">*</span></label>
+                    <Select value={form.visa_type} onValueChange={v => handleChange('visa_type', v)} disabled={!form.destination_country}>
+                      <SelectTrigger className={inputClass}>
+                        <SelectValue placeholder={form.destination_country ? "Select visa type" : "Select a country first"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {visaTypes.map(vt => (
+                          <SelectItem key={vt.value} value={vt.value}>{vt.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Preferred Course / Program</label>
+                    <div className="relative">
+                      <BookOpen className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Input
+                        value={form.preferred_course}
+                        onChange={e => handleChange('preferred_course', e.target.value)}
+                        placeholder="e.g., Computer Science, Business Administration"
+                        className={`pl-12 ${inputClass}`}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Education Level</label>
+                      <Select value={form.education_level} onValueChange={v => handleChange('education_level', v)}>
+                        <SelectTrigger className={inputClass}>
+                          <SelectValue placeholder="Select level" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {EDUCATION_LEVELS.map(el => (
+                            <SelectItem key={el.value} value={el.value}>{el.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Preferred Start Date</label>
+                      <div className="relative">
+                        <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+                        <Input
+                          type="date"
+                          value={form.preferred_start_date}
+                          onChange={e => handleChange('preferred_start_date', e.target.value)}
+                          className={`pl-12 ${inputClass}`}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Additional Notes</label>
+                    <Textarea
+                      value={form.message}
+                      onChange={e => handleChange('message', e.target.value)}
+                      placeholder="Tell us about your goals, universities you're interested in, or questions..."
+                      rows={3}
+                      className="rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
                     />
                   </div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t border-gray-100" />
-
-            {/* Message */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-[#1e3a5f] ml-1">Additional Notes</label>
-              <Textarea
-                value={form.message}
-                onChange={e => handleChange('message', e.target.value)}
-                placeholder="Tell us about your goals, any specific universities you're interested in, or questions..."
-                rows={4}
-                className="rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] min-h-[120px]"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              disabled={submitting}
-              className="w-full h-12 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-xl text-base font-semibold shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30 transition-all duration-300"
-            >
-              {submitting ? (
-                <span className="flex items-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Submitting...
-                </span>
-              ) : (
-                <span className="flex items-center gap-2">
-                  <Send className="w-5 h-5" />
-                  Submit Application
-                </span>
+                </motion.div>
               )}
-            </Button>
-          </form>
+
+              {/* Step 3: Documents */}
+              {step === 2 && (
+                <motion.div key="documents" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-5">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-green-50 rounded-xl flex items-center justify-center">
+                      <Upload className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[#1e3a5f] text-lg">Upload Documents</h3>
+                      <p className="text-sm text-gray-500">Upload required documents (PDF, JPG, PNG — max 10MB each)</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {REQUIRED_DOCUMENTS.map(doc => {
+                      const file = documents[doc.key];
+                      return (
+                        <div key={doc.key} className={`border rounded-xl p-4 transition-all ${file ? 'border-green-300 bg-green-50/50' : 'border-gray-200 bg-[#faf8f5]'}`}>
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                {file ? (
+                                  <Check className="w-4 h-4 text-green-600 shrink-0" />
+                                ) : (
+                                  <FileText className="w-4 h-4 text-gray-400 shrink-0" />
+                                )}
+                                <span className="font-medium text-sm text-[#1e3a5f]">{doc.label}</span>
+                              </div>
+                              <p className="text-xs text-gray-500 mt-0.5 ml-6">{doc.description}</p>
+                              {file && (
+                                <p className="text-xs text-green-700 mt-1 ml-6">{file.name} ({(file.size / 1024).toFixed(0)} KB)</p>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2 shrink-0">
+                              {file && (
+                                <button type="button" onClick={() => removeFile(doc.key)} className="text-red-400 hover:text-red-600 transition-colors">
+                                  <X className="w-4 h-4" />
+                                </button>
+                              )}
+                              <input
+                                ref={el => fileInputRefs.current[doc.key] = el}
+                                type="file"
+                                accept=".pdf,.jpg,.jpeg,.png"
+                                className="hidden"
+                                onChange={e => handleFileSelect(doc.key, e.target.files[0])}
+                              />
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={() => fileInputRefs.current[doc.key]?.click()}
+                                className="text-xs h-8 rounded-lg"
+                              >
+                                {file ? 'Replace' : 'Upload'}
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700">
+                    <strong>Note:</strong> You can upload documents now or add them later from your dashboard. Uploading now speeds up the review process.
+                  </div>
+                </motion.div>
+              )}
+
+              {/* Step 4: Review & Payment */}
+              {step === 3 && (
+                <motion.div key="review" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-[#c9a962]/10 rounded-xl flex items-center justify-center">
+                      <Eye className="w-5 h-5 text-[#c9a962]" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-[#1e3a5f] text-lg">Review Your Application</h3>
+                      <p className="text-sm text-gray-500">Please verify all details before submitting</p>
+                    </div>
+                  </div>
+
+                  {/* Personal Details Review */}
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b">
+                      <h4 className="font-medium text-[#1e3a5f] text-sm flex items-center gap-2"><User className="w-4 h-4" /> Personal Details</h4>
+                      <button type="button" onClick={() => setStep(0)} className="text-xs text-[#c9a962] hover:underline font-medium">Edit</button>
+                    </div>
+                    <div className="p-4 grid grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-gray-500">Name</span><p className="font-medium text-[#1e3a5f]">{form.first_name} {form.last_name}</p></div>
+                      <div><span className="text-gray-500">Email</span><p className="font-medium text-[#1e3a5f]">{form.email}</p></div>
+                      <div><span className="text-gray-500">Phone</span><p className="font-medium text-[#1e3a5f]">{form.phone}</p></div>
+                    </div>
+                  </div>
+
+                  {/* Program Details Review */}
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b">
+                      <h4 className="font-medium text-[#1e3a5f] text-sm flex items-center gap-2"><GraduationCap className="w-4 h-4" /> Program Details</h4>
+                      <button type="button" onClick={() => setStep(1)} className="text-xs text-[#c9a962] hover:underline font-medium">Edit</button>
+                    </div>
+                    <div className="p-4 grid grid-cols-2 gap-3 text-sm">
+                      <div><span className="text-gray-500">Destination</span><p className="font-medium text-[#1e3a5f]">{COUNTRY_LABELS[form.destination_country] || '—'}</p></div>
+                      <div><span className="text-gray-500">Visa Type</span><p className="font-medium text-[#1e3a5f]">{VISA_LABELS[form.visa_type] || '—'}</p></div>
+                      {form.preferred_course && <div><span className="text-gray-500">Preferred Course</span><p className="font-medium text-[#1e3a5f]">{form.preferred_course}</p></div>}
+                      {form.education_level && <div><span className="text-gray-500">Education</span><p className="font-medium text-[#1e3a5f]">{EDUCATION_LABELS[form.education_level] || form.education_level}</p></div>}
+                      {form.preferred_start_date && <div><span className="text-gray-500">Start Date</span><p className="font-medium text-[#1e3a5f]">{form.preferred_start_date}</p></div>}
+                      {form.message && <div className="col-span-2"><span className="text-gray-500">Notes</span><p className="font-medium text-[#1e3a5f]">{form.message}</p></div>}
+                    </div>
+                  </div>
+
+                  {/* Documents Review */}
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between bg-gray-50 px-4 py-3 border-b">
+                      <h4 className="font-medium text-[#1e3a5f] text-sm flex items-center gap-2"><FileText className="w-4 h-4" /> Documents ({uploadedCount}/{REQUIRED_DOCUMENTS.length})</h4>
+                      <button type="button" onClick={() => setStep(2)} className="text-xs text-[#c9a962] hover:underline font-medium">Edit</button>
+                    </div>
+                    <div className="p-4 space-y-2 text-sm">
+                      {REQUIRED_DOCUMENTS.map(doc => (
+                        <div key={doc.key} className="flex items-center gap-2">
+                          {documents[doc.key] ? (
+                            <Check className="w-4 h-4 text-green-600" />
+                          ) : (
+                            <X className="w-4 h-4 text-gray-300" />
+                          )}
+                          <span className={documents[doc.key] ? 'text-[#1e3a5f]' : 'text-gray-400'}>
+                            {doc.label}
+                          </span>
+                          {documents[doc.key] && (
+                            <span className="text-xs text-gray-400 ml-auto">{documents[doc.key].name}</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Processing Fee */}
+                  <div className="border border-[#c9a962]/30 bg-[#c9a962]/5 rounded-xl overflow-hidden">
+                    <div className="px-4 py-3 border-b border-[#c9a962]/20">
+                      <h4 className="font-medium text-[#1e3a5f] text-sm flex items-center gap-2">
+                        <CreditCard className="w-4 h-4 text-[#c9a962]" /> Processing Fee
+                      </h4>
+                    </div>
+                    <div className="p-4">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-sm text-gray-600">Application Processing Fee</span>
+                        <span className="text-lg font-bold text-[#1e3a5f]">NPR 2,500</span>
+                      </div>
+                      <p className="text-xs text-gray-500 mb-4">Processing fee is non-refundable. Payment will be collected after your application is reviewed by our team. You can submit now and pay later.</p>
+                      <div className="bg-white border border-gray-200 rounded-xl p-4 space-y-3">
+                        <div className="flex items-center gap-3 text-sm text-gray-600">
+                          <div className="w-8 h-8 bg-[#1e3a5f]/10 rounded-lg flex items-center justify-center">
+                            <CreditCard className="w-4 h-4 text-[#1e3a5f]" />
+                          </div>
+                          <span>Payment will be requested after application review</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Navigation Buttons */}
+            <div className="flex items-center justify-between mt-8 pt-6 border-t border-gray-100">
+              {step > 0 ? (
+                <Button type="button" variant="outline" onClick={prevStep} className="rounded-xl h-12 px-6">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back
+                </Button>
+              ) : (
+                <div />
+              )}
+
+              {step < STEPS.length - 1 ? (
+                <Button type="button" onClick={nextStep} className="rounded-xl h-12 px-8 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white">
+                  Next
+                  <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                  className="rounded-xl h-12 px-8 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white shadow-lg shadow-[#1e3a5f]/20"
+                >
+                  {submitting ? (
+                    <span className="flex items-center gap-2">
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      Submitting...
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-2">
+                      <Send className="w-5 h-5" />
+                      Submit Application
+                    </span>
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
         </motion.div>
       </div>
     </div>
