@@ -115,6 +115,10 @@ class ContactMessage(models.Model):
     message = models.TextField(
         help_text="The inquiry message"
     )
+    is_read = models.BooleanField(
+        default=False,
+        help_text="Whether the message has been read by admin"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -125,3 +129,27 @@ class ContactMessage(models.Model):
     def __str__(self):
         """Return sender name and email."""
         return f"{self.name} - {self.email}"
+
+
+class EmailOTP(models.Model):
+    PURPOSE_CHOICES = [
+        ('signup', 'Signup Verification'),
+        ('password_reset', 'Password Reset'),
+    ]
+
+    email = models.EmailField()
+    otp_code = models.CharField(max_length=6)
+    purpose = models.CharField(max_length=20, choices=PURPOSE_CHOICES)
+    is_used = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def is_expired(self):
+        from django.utils import timezone
+        import datetime
+        return timezone.now() > self.created_at + datetime.timedelta(minutes=10)
+
+    def __str__(self):
+        return f"{self.email} - {self.purpose} - {self.otp_code}"

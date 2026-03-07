@@ -213,6 +213,8 @@ class Appointment(models.Model):
         help_text="Customer's contact phone number"
     )
     appointment_date = models.DateTimeField(
+        null=True,
+        blank=True,
         help_text="Scheduled date and time of the appointment"
     )
     service_type = models.CharField(

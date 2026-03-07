@@ -54,3 +54,4 @@ media/
 *.pyc
 *.pyo
 *.pyd
+TESTING_CHECKLIST.md

@@ -288,3 +288,76 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         appointments = Appointment.objects.filter(user=request.user).order_by('-appointment_date')
         serializer = self.get_serializer(appointments, many=True)
         return Response(serializer.data)
+
+    @action(detail=True, methods=['post'])
+    def update_status(self, request, pk=None):
+        """
+        Update appointment status (admin only).
+        
+        Args:
+            request: HTTP request with 'status' in body.
+            pk: Appointment primary key.
+        
+        Returns:
+            Response: Updated appointment data.
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+        
+        appointment = self.get_object()
+        new_status = request.data.get('status')
+        
+        valid_statuses = ['pending', 'confirmed', 'cancelled', 'completed']
+        if new_status not in valid_statuses:
+            return Response(
+                {'error': f'Invalid status. Must be one of: {", ".join(valid_statuses)}'}, 
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        appointment.status = new_status
+        if new_status == 'confirmed':
+            appointment.is_confirmed = True
+        appointment.save()
+        
+        serializer = self.get_serializer(appointment)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def all_appointments(self, request):
+        """
+        Get all appointments (admin only).
+        
+        Returns:
+            Response: JSON array of all appointments.
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+        
+        appointments = Appointment.objects.all().order_by('-created_at')
+        serializer = self.get_serializer(appointments, many=True)
+        return Response(serializer.data)
+    
+    @action(detail=False, methods=['get'])
+    def stats(self, request):
+        """
+        Get appointment statistics (admin only).
+        
+        Returns:
+            Response: Statistics about appointments.
+        """
+        if not request.user.is_staff:
+            return Response({'error': 'Admin access required'}, status=status.HTTP_403_FORBIDDEN)
+        
+        total = Appointment.objects.count()
+        pending = Appointment.objects.filter(status='pending').count()
+        confirmed = Appointment.objects.filter(status='confirmed').count()
+        completed = Appointment.objects.filter(status='completed').count()
+        cancelled = Appointment.objects.filter(status='cancelled').count()
+        
+        return Response({
+            'total': total,
+            'pending': pending,
+            'confirmed': confirmed,
+            'completed': completed,
+            'cancelled': cancelled
+        })

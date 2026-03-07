@@ -121,6 +121,14 @@ export const authApi = {
    */
   register: (data) => api.post('register/', data),
   
+  verifyOtp: (data) => api.post('verify-otp/', data),
+  
+  resendOtp: (data) => api.post('resend-otp/', data),
+  
+  forgotPassword: (data) => api.post('forgot-password/', data),
+  
+  resetPassword: (data) => api.post('reset-password/', data),
+  
   /** Get authenticated user's profile */
   getProfile: () => api.get('profile/'),
   
@@ -277,6 +285,63 @@ export const contactApi = {
    * @param {string} data.message - Message content
    */
   send: (data) => api.post('contact/', data),
+};
+
+/**
+ * Admin API namespace.
+ * Admin-only endpoints for management.
+ * 
+ * @namespace adminApi
+ */
+export const adminApi = {
+  // Contact Messages
+  /** List all contact messages (admin only) */
+  getContactMessages: () => api.get('contact-messages/'),
+  
+  /** Get single contact message */
+  getContactMessage: (id) => api.get(`contact-messages/${id}/`),
+  
+  /** Delete contact message */
+  deleteContactMessage: (id) => api.delete(`contact-messages/${id}/`),
+  
+  /** Mark message as read */
+  markMessageRead: (id) => api.post(`contact-messages/${id}/mark_read/`),
+  
+  /** Get unread message count */
+  getUnreadCount: () => api.get('contact-messages/unread_count/'),
+  
+  // Appointments
+  /** Get all appointments (admin only) */
+  getAllAppointments: () => api.get('appointments/all_appointments/'),
+  
+  /** Update appointment status */
+  updateAppointmentStatus: (id, status) => api.post(`appointments/${id}/update_status/`, { status }),
+  
+  /** Get appointment statistics */
+  getAppointmentStats: () => api.get('appointments/stats/'),
+  
+  // Appointment Slots
+  /** Create appointment slot */
+  createSlot: (data) => api.post('appointment-slots/', data),
+  
+  /** Update appointment slot */
+  updateSlot: (id, data) => api.patch(`appointment-slots/${id}/`, data),
+  
+  /** Delete appointment slot */
+  deleteSlot: (id) => api.delete(`appointment-slots/${id}/`),
+  
+  /** Get all slots (including inactive) */
+  getAllSlots: () => api.get('appointment-slots/'),
+  
+  // Applicants
+  /** Get all applicants */
+  getAllApplicants: () => api.get('applicants/'),
+  
+  /** Update applicant */
+  updateApplicant: (id, data) => api.patch(`applicants/${id}/`, data),
+  
+  /** Delete applicant */
+  deleteApplicant: (id) => api.delete(`applicants/${id}/`),
 };
 
 export default api;

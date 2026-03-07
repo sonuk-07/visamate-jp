@@ -5,6 +5,7 @@ import { Menu, X, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from './utils';
 import { useAuth } from '@/lib/AuthContext';
+import WhatsAppButton from '@/components/WhatsAppButton';
 import Chatbot from '@/components/Chatbot';
 
 export default function Layout({ children }) {
@@ -107,6 +108,16 @@ export default function Layout({ children }) {
 
               {user ? (
                 <>
+                  {user.is_staff && (
+                    <Link to="/admin">
+                      <Button
+                        variant="outline"
+                        className="border-[#c9a962] text-[#c9a962] hover:bg-[#c9a962] hover:text-white px-6 rounded-full"
+                      >
+                        {language === 'en' ? 'Admin' : '管理者'}
+                      </Button>
+                    </Link>
+                  )}
                   <Link to="/Dashboard">
                     <Button
                       variant="outline"
@@ -189,6 +200,13 @@ export default function Layout({ children }) {
                   </Button>
                   {user ? (
                     <>
+                      {user.is_staff && (
+                        <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                          <Button variant="outline" className="w-full border-[#c9a962] text-[#c9a962]">
+                            {language === 'en' ? 'Admin' : '管理者'}
+                          </Button>
+                        </Link>
+                      )}
                       <Link to="/Dashboard" onClick={() => setIsMobileMenuOpen(false)}>
                         <Button variant="outline" className="w-full border-[#1e3a5f] text-[#1e3a5f]">
                           {language === 'en' ? 'Dashboard' : 'ダッシュボード'}
@@ -223,6 +241,9 @@ export default function Layout({ children }) {
         {children}
       </main>
 
+      {/* WhatsApp Button */}
+      <WhatsAppButton />
+      
       {/* Chatbot */}
       <Chatbot />
     </div>

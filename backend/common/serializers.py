@@ -21,7 +21,22 @@ Usage:
 
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import ContactMessage
+
+
+class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
+    """Allow login with either username or email."""
+
+    def validate(self, attrs):
+        username_field = attrs.get('username', '')
+        if '@' in username_field:
+            try:
+                user = User.objects.get(email=username_field)
+                attrs['username'] = user.username
+            except User.DoesNotExist:
+                pass  # let parent raise invalid credentials
+        return super().validate(attrs)
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -50,7 +65,7 @@ class UserSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'is_staff')
 
 
 class RegisterSerializer(serializers.ModelSerializer):
