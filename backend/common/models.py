@@ -26,6 +26,7 @@ Usage:
 
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.validators import FileExtensionValidator
 
 
 class UserProfile(models.Model):
@@ -57,7 +58,10 @@ class UserDocument(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_documents')
     document_type = models.CharField(max_length=30, choices=DOCUMENT_TYPES)
     title = models.CharField(max_length=255)
-    file = models.FileField(upload_to='user_documents/')
+    file = models.FileField(
+        upload_to='user_documents/',
+        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'jpg', 'jpeg', 'png', 'doc', 'docx'])],
+    )
     uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

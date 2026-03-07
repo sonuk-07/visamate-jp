@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   User, Mail, Lock, Eye, EyeOff, Save, Loader2,
   Phone, Globe, FileText, Upload, Trash2, Download, Calendar, MapPin
@@ -32,7 +32,12 @@ const DOCUMENT_TYPES = [
 export default function MyProfile() {
   const { user, checkAuth } = useAuth();
   const navigate = useNavigate();
-  const [activeSection, setActiveSection] = useState('personal');
+  const [searchParams] = useSearchParams();
+  const [activeSection, setActiveSection] = useState(() => {
+    const tab = searchParams.get('tab');
+    const validTabs = SIDEBAR_SECTIONS.map(s => s.key);
+    return validTabs.includes(tab) ? tab : 'personal';
+  });
   const [loading, setLoading] = useState(false);
   const [additionalLoading, setAdditionalLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
@@ -72,11 +77,19 @@ export default function MyProfile() {
       const res = await userDocumentsApi.list();
       setDocuments(res.data);
     } catch {
-      // silent
+      toast.error('Failed to load documents');
     } finally {
       setDocsLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    const tab = searchParams.get('tab');
+    const validTabs = SIDEBAR_SECTIONS.map(s => s.key);
+    if (tab && validTabs.includes(tab)) {
+      setActiveSection(tab);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!user) {
@@ -156,6 +169,10 @@ export default function MyProfile() {
     e.preventDefault();
     if (!uploadForm.file) {
       toast.error('Please select a file');
+      return;
+    }
+    if (uploadForm.file.size > 10 * 1024 * 1024) {
+      toast.error('File size must be under 10MB');
       return;
     }
     if (!uploadForm.title.trim()) {
@@ -444,7 +461,7 @@ export default function MyProfile() {
                   </div>
 
                   <div className="pt-1">
-                    <Button type="submit" disabled={uploadLoading} className="bg-[#c9a962] hover:bg-[#b89852] text-white rounded-lg h-11 px-6">
+                    <Button type="submit" disabled={uploadLoading} className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-lg h-11 px-6">
                       {uploadLoading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Uploading...</> : <><Upload className="w-4 h-4 mr-2" /> Upload Document</>}
                     </Button>
                   </div>
@@ -578,7 +595,7 @@ export default function MyProfile() {
                     <Button
                       type="submit"
                       disabled={passwordLoading || !passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password}
-                      className="bg-[#c9a962] hover:bg-[#b89852] text-white rounded-lg h-11 px-6"
+                      className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-lg h-11 px-6"
                     >
                       {passwordLoading ? (
                         <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Changing...</>

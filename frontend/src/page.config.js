@@ -53,7 +53,6 @@ import ApplicationSupport from './pages/ApplicationSupport';
 import VisaGuidance from './pages/VisaGuidance';
 import PreDeparturePrep from './pages/PreDeparturePrep';
 import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
 import AppointmentBooking from './pages/AppointmentBooking';
 import NewApplication from './pages/NewApplication';
 import MyProfile from './pages/MyProfile';
@@ -69,7 +68,6 @@ export const PAGES = {
     "VisaGuidance": VisaGuidance,
     "PreDeparturePrep": PreDeparturePrep,
     "Dashboard": Dashboard,
-    "Profile": Profile,
     "AppointmentBooking": AppointmentBooking,
     "NewApplication": NewApplication,
     "MyProfile": MyProfile,

@@ -150,3 +150,11 @@ class DocumentViewSet(viewsets.ModelViewSet):
         if self.request.user.is_staff:
             return Document.objects.all()
         return Document.objects.filter(applicant__user=self.request.user)
+
+    def perform_create(self, serializer):
+        """Ensure the document is attached to an applicant owned by the current user."""
+        applicant = serializer.validated_data.get('applicant')
+        if not self.request.user.is_staff and applicant.user != self.request.user:
+            from rest_framework.exceptions import PermissionDenied
+            raise PermissionDenied('You can only upload documents for your own applications.')
+        serializer.save()

@@ -39,6 +39,7 @@ export default function Dashboard() {
       setApplications(applicantsRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
+      toast.error('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }

@@ -28,6 +28,7 @@ from rest_framework import viewsets, permissions, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.utils import timezone
+from django.db import transaction, models
 from datetime import datetime, timedelta
 from .models import Appointment, AppointmentSlot
 from .serializers import AppointmentSerializer, AppointmentSlotSerializer
@@ -133,20 +134,16 @@ class AppointmentSlotViewSet(viewsets.ModelViewSet):
         """
         Get list of dates that have available slots.
         
-        Used by the frontend calendar to highlight bookable dates.
-        
-        Args:
-            request: HTTP request object.
-        
-        Returns:
-            Response: JSON array of date strings (YYYY-MM-DD format).
-        
-        Example Response:
-            ["2024-01-15", "2024-01-16", "2024-01-17"]
+        Only returns dates where at least one slot has remaining capacity.
         """
+        from django.db.models import Count, Q
         slots = AppointmentSlot.objects.filter(
             is_active=True, 
             date__gte=timezone.now().date()
+        ).annotate(
+            active_bookings=Count('appointments', filter=Q(appointments__status__in=['pending', 'confirmed']))
+        ).filter(
+            active_bookings__lt=models.F('max_bookings')
         ).order_by('date').values_list('date', flat=True).distinct()
         return Response(list(slots))
 
@@ -217,26 +214,22 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         """
         Create a new appointment and send confirmation emails.
         
-        If a slot is provided, extracts the appointment date and service
-        type from the slot. Sends email notifications after creation.
-        
-        Args:
-            serializer: Validated AppointmentSerializer instance.
-        
-        Side Effects:
-            - Creates Appointment record
-            - Sends confirmation email to customer
-            - Sends notification email to admin
+        Uses atomic transaction with select_for_update to prevent double-booking.
         """
         slot = serializer.validated_data.get('slot')
         if slot:
-            # Set appointment_date from slot
-            appointment_date = datetime.combine(slot.date, slot.start_time)
-            appointment = serializer.save(
-                user=self.request.user,
-                appointment_date=timezone.make_aware(appointment_date),
-                service_type=slot.service_type
-            )
+            with transaction.atomic():
+                # Re-fetch slot with lock to prevent race condition
+                locked_slot = AppointmentSlot.objects.select_for_update().get(pk=slot.pk)
+                if not locked_slot.is_available:
+                    from rest_framework.exceptions import ValidationError
+                    raise ValidationError({'slot': 'This time slot is no longer available.'})
+                appointment_date = datetime.combine(locked_slot.date, locked_slot.start_time)
+                appointment = serializer.save(
+                    user=self.request.user,
+                    appointment_date=timezone.make_aware(appointment_date),
+                    service_type=locked_slot.service_type
+                )
         else:
             appointment = serializer.save(user=self.request.user)
         

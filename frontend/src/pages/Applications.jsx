@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/lib/AuthContext';
 import { applicantsApi } from '@/api/djangoClient';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 const STATUS_STEPS = [
   { key: 'applied', label: 'Applied', icon: FileText },
@@ -175,7 +176,7 @@ export default function Applications() {
         const res = await applicantsApi.list();
         setApplications(res.data || []);
       } catch {
-        // silently handle
+        toast.error('Failed to load applications');
       } finally {
         setLoading(false);
       }

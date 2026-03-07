@@ -31,11 +31,10 @@ class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
         username_field = attrs.get('username', '')
         if '@' in username_field:
-            try:
-                user = User.objects.get(email=username_field)
+            user = User.objects.filter(email=username_field).first()
+            if user:
                 attrs['username'] = user.username
-            except User.DoesNotExist:
-                pass  # let parent raise invalid credentials
+            # else: let parent raise invalid credentials
         return super().validate(attrs)
 
 
@@ -101,6 +100,11 @@ class RegisterSerializer(serializers.ModelSerializer):
             'username': {'required': False},
         }
 
+    def validate_email(self, value):
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError('A user with this email already exists.')
+        return value
+
     def create(self, validated_data):
         """
         Create a new user with hashed password.
@@ -129,6 +133,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             first_name=validated_data.get('first_name', ''),
             last_name=validated_data.get('last_name', '')
         )
+        UserProfile.objects.get_or_create(user=user)
         return user
 
 

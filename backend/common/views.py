@@ -33,6 +33,7 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
+from django.utils.html import escape as html_escape
 from .serializers import RegisterSerializer, UserSerializer, ContactMessageSerializer, UserDocumentSerializer
 from .models import ContactMessage, EmailOTP, UserDocument
 import os
@@ -116,6 +117,7 @@ class ChangePasswordView(APIView):
     permission_classes = (permissions.IsAuthenticated,)
 
     def post(self, request):
+        from django.contrib.auth.password_validation import validate_password
         user = request.user
         current_password = request.data.get('current_password', '')
         new_password = request.data.get('new_password', '')
@@ -126,8 +128,10 @@ class ChangePasswordView(APIView):
         if not user.check_password(current_password):
             return Response({'error': 'Current password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if len(new_password) < 8:
-            return Response({'error': 'New password must be at least 8 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+        try:
+            validate_password(new_password, user)
+        except Exception as e:
+            return Response({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
         user.set_password(new_password)
         user.save()
@@ -237,8 +241,12 @@ class ResetPasswordView(APIView):
         if not email or not otp_code or not new_password:
             return Response({'error': 'Email, OTP, and new password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if len(new_password) < 8:
-            return Response({'error': 'Password must be at least 8 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+        # Validate password strength using Django validators
+        from django.contrib.auth.password_validation import validate_password
+        try:
+            validate_password(new_password)
+        except Exception as e:
+            return Response({'error': list(e.messages)}, status=status.HTTP_400_BAD_REQUEST)
 
         otp = EmailOTP.objects.filter(email=email, otp_code=otp_code, purpose='password_reset', is_used=False).order_by('-created_at').first()
         if not otp:
@@ -344,6 +352,8 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
         
         # Send HTML notification email (teaser only, no reply content)
         login_url = f"{FRONTEND_URL}/login?redirect=/Dashboard?tab=messages"
+        safe_name = html_escape(message.name)
+        safe_message_preview = html_escape(message.message[:100])
         html_message = f"""
         <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #faf8f5;">
           <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2a4a6f 100%); padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
@@ -351,7 +361,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
             <p style="color: rgba(255,255,255,0.7); margin: 8px 0 0; font-size: 14px;">Study Abroad Consultancy</p>
           </div>
           <div style="background: #ffffff; padding: 40px 32px; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb;">
-            <h2 style="color: #1e3a5f; margin: 0 0 16px; font-size: 20px;">Hello {message.name},</h2>
+            <h2 style="color: #1e3a5f; margin: 0 0 16px; font-size: 20px;">Hello {safe_name},</h2>
             <p style="color: #4b5563; line-height: 1.6; margin: 0 0 24px; font-size: 15px;">
               You have a new reply to your inquiry from the VisaMate Japan team. 
               Log in to your account to read the full message.
@@ -365,7 +375,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
             <div style="background: #faf8f5; border-radius: 8px; padding: 16px; margin-top: 24px;">
               <p style="color: #6b7280; font-size: 13px; margin: 0;">
                 <strong style="color: #1e3a5f;">Your original inquiry:</strong><br/>
-                "{message.message[:100]}{"..." if len(message.message) > 100 else ""}"
+                "{safe_message_preview}{"..." if len(message.message) > 100 else ""}"
               </p>
             </div>
           </div>
@@ -503,6 +513,18 @@ class ChatbotView(APIView):
         if missing:
             return Response({'error': f'Missing fields: {", ".join(missing)}'}, status=status.HTTP_400_BAD_REQUEST)
 
+        valid_service_types = ['visa_guidance', 'university_selection', 'application_support', 'pre_departure', 'general_consultation']
+        if data['service_type'] not in valid_service_types:
+            return Response({'error': 'Invalid service type.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        service_labels = {
+            'visa_guidance': 'Visa Guidance',
+            'university_selection': 'University Selection',
+            'application_support': 'Application Support',
+            'pre_departure': 'Pre-Departure Prep',
+            'general_consultation': 'General Consultation',
+        }
+
         try:
             appointment = Appointment.objects.create(
                 full_name=data['full_name'],
@@ -512,8 +534,9 @@ class ChatbotView(APIView):
                 message=data.get('message', ''),
                 status='pending',
             )
+            service_display = service_labels.get(appointment.service_type, appointment.service_type)
             return Response({
-                'reply': f"✅ Your appointment has been booked successfully!\n\n📋 **Booking Details:**\n- Name: {appointment.full_name}\n- Service: {appointment.get_service_type_display()}\n- Status: Pending\n\nOur team will confirm your appointment shortly. You'll receive a confirmation email at {appointment.email}. Is there anything else I can help with?",
+                'reply': f"✅ Your appointment has been booked successfully!\n\n📋 **Booking Details:**\n- Name: {appointment.full_name}\n- Service: {service_display}\n- Status: Pending\n\nOur team will confirm your appointment shortly. You'll receive a confirmation email at {appointment.email}. Is there anything else I can help with?",
                 'action_completed': 'book_appointment',
                 'appointment_id': appointment.id,
             })

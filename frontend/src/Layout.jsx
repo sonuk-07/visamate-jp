@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Globe, ChevronDown, LayoutDashboard, Settings, LogOut, Shield, User } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, LayoutDashboard, LogOut, Shield, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -135,10 +135,6 @@ export default function Layout({ children }) {
                       <User className="w-4 h-4 mr-2" />
                       {language === 'en' ? 'Profile' : 'プロフィール'}
                     </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => navigate('/MyProfile')} className="cursor-pointer">
-                      <Settings className="w-4 h-4 mr-2" />
-                      {language === 'en' ? 'Settings' : '設定'}
-                    </DropdownMenuItem>
                     {user.is_staff && (
                       <>
                         <DropdownMenuSeparator />
@@ -250,7 +246,7 @@ export default function Layout({ children }) {
                 className="h-10 w-10 object-contain"
               />
               <span className={`text-xl font-bold transition-colors ${
-                isScrolled ? 'text-[#1e3a5f]' : 'text-[#1e3a5f]'
+                isScrolled ? 'text-[#1e3a5f]' : 'text-white'
               }`}>
                 VisaMate Japan
               </span>
@@ -305,11 +301,12 @@ export default function Layout({ children }) {
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2"
+              aria-label={isMobileMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {isMobileMenuOpen ? (
-                <X className={isScrolled ? 'text-[#1e3a5f]' : 'text-[#1e3a5f]'} />
+                <X className={isScrolled ? 'text-[#1e3a5f]' : 'text-white'} />
               ) : (
-                <Menu className={isScrolled ? 'text-[#1e3a5f]' : 'text-[#1e3a5f]'} />
+                <Menu className={isScrolled ? 'text-[#1e3a5f]' : 'text-white'} />
               )}
             </button>
           </div>

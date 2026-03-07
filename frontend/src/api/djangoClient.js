@@ -61,28 +61,54 @@ api.interceptors.request.use((config) => {
 
 /**
  * Response interceptor - Handles token refresh on 401 errors.
- * Automatically refreshes expired access tokens using the refresh token.
- * Redirects to login if refresh fails.
+ * Uses a refresh lock to prevent multiple concurrent refresh attempts.
  */
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(({ resolve, reject }) => {
+    if (error) reject(error);
+    else resolve(token);
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
     if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Queue this request until refresh completes
+        return new Promise((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
         try {
           const response = await axios.post(`${API_URL}token/refresh/`, {
             refresh: refreshToken,
           });
-          localStorage.setItem('access_token', response.data.access);
-          originalRequest.headers.Authorization = `Bearer ${response.data.access}`;
+          const newToken = response.data.access;
+          localStorage.setItem('access_token', newToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          processQueue(null, newToken);
           return api(originalRequest);
         } catch (refreshError) {
+          processQueue(refreshError, null);
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
           window.location.href = '/login';
+        } finally {
+          isRefreshing = false;
         }
       }
     }

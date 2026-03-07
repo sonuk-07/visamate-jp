@@ -185,13 +185,8 @@ export default function NewApplication() {
   const inputClass = "h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]";
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] pt-24 pb-12">
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-[#1e3a5f]/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-20 -left-20 w-72 h-72 bg-[#c9a962]/10 rounded-full blur-3xl" />
-      </div>
-
-      <div className="container mx-auto px-6 lg:px-12 py-8 max-w-2xl relative z-10">
+    <div>
+      <div className="max-w-2xl mx-auto relative z-10">
         <Link to="/Dashboard" className="inline-flex items-center text-[#1e3a5f] hover:text-[#c9a962] mb-6 transition-colors">
           <ArrowLeft className="w-5 h-5 mr-2" />
           Back to Dashboard

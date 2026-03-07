@@ -410,21 +410,20 @@ export default function AppointmentBooking() {
 
   if (authLoading || !user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] flex items-center justify-center">
+      <div className="flex items-center justify-center py-16">
         <div className="w-8 h-8 border-4 border-[#1e3a5f]/20 border-t-[#1e3a5f] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] pt-24 pb-12">
-      <div className="container mx-auto px-6 lg:px-12">
-        {/* Header */}
-        <div className="mb-8">
-          <Link to={createPageUrl('Home')} className="inline-flex items-center text-[#1e3a5f] hover:text-[#c9a962] mb-4 transition-colors">
-            <ArrowLeft className="w-5 h-5 mr-2" />
-            Back to Home
-          </Link>
+    <div>
+      {/* Header */}
+      <div className="mb-8">
+        <Link to={createPageUrl('Home')} className="inline-flex items-center text-[#1e3a5f] hover:text-[#c9a962] mb-4 transition-colors">
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Home
+        </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-[#1e3a5f]">Book an Appointment</h1>
           <p className="text-gray-600 mt-2">Schedule a consultation with our expert team</p>
         </div>
@@ -753,7 +752,6 @@ export default function AppointmentBooking() {
             </motion.div>
           )}
         </AnimatePresence>
-      </div>
     </div>
   );
 }

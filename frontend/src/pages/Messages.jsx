@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/lib/AuthContext';
 import { myMessagesApi } from '@/api/djangoClient';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 export default function Messages() {
   const { user } = useAuth();
@@ -24,7 +25,7 @@ export default function Messages() {
         const res = await myMessagesApi.list();
         setMessages(res.data || []);
       } catch {
-        // silently handle
+        toast.error('Failed to load messages');
       } finally {
         setLoading(false);
       }

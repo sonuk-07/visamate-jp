@@ -88,9 +88,12 @@ def send_appointment_confirmation(appointment):
     if appointment.slot:
         date_str = appointment.slot.date.strftime('%A, %B %d, %Y')
         time_str = f"{appointment.slot.start_time.strftime('%I:%M %p')} - {appointment.slot.end_time.strftime('%I:%M %p')}"
-    else:
+    elif appointment.appointment_date:
         date_str = appointment.appointment_date.strftime('%A, %B %d, %Y')
         time_str = appointment.appointment_date.strftime('%I:%M %p')
+    else:
+        date_str = 'To be confirmed'
+        time_str = 'To be confirmed'
     
     subject = f'Appointment Confirmation - VisaMate Japan'
     
@@ -276,11 +279,14 @@ def send_admin_notification(appointment):
     if appointment.slot:
         date_str = appointment.slot.date.strftime('%A, %B %d, %Y')
         time_str = f"{appointment.slot.start_time.strftime('%I:%M %p')} - {appointment.slot.end_time.strftime('%I:%M %p')}"
-    else:
+    elif appointment.appointment_date:
         date_str = appointment.appointment_date.strftime('%A, %B %d, %Y')
         time_str = appointment.appointment_date.strftime('%I:%M %p')
+    else:
+        date_str = 'To be confirmed'
+        time_str = 'To be confirmed'
     
-    subject = f'🔔 New Appointment: {appointment.full_name} - {service_name}'
+    subject = f'New Appointment: {appointment.full_name} - {service_name}'
     
     message = f"""
 New Appointment Booking

@@ -143,7 +143,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
 else:
-    CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', '').split(',')
+    CORS_ALLOWED_ORIGINS = [o for o in os.getenv('CORS_ALLOWED_ORIGINS', '').split(',') if o.strip()]
     CORS_ALLOW_CREDENTIALS = True
 
 REST_FRAMEWORK = {

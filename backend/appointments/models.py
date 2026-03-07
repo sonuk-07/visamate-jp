@@ -219,6 +219,8 @@ class Appointment(models.Model):
     )
     service_type = models.CharField(
         max_length=100,
+        choices=AppointmentSlot.SERVICE_CHOICES,
+        default='general_consultation',
         help_text="Type of consultation service"
     )
     message = models.TextField(
