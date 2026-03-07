@@ -138,8 +138,8 @@ export default function HeroSection() {
                   className="rounded-3xl overflow-hidden shadow-2xl"
                 >
                   <img
-                    src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=400&h=300&fit=crop"
-                    alt="Graduation Ceremony"
+                    src="https://images.unsplash.com/photo-1562774053-701939374585?w=400&h=300&fit=crop"
+                    alt="University Campus, Australia"
                     className="w-full h-48 object-cover"
                   />
                 </motion.div>

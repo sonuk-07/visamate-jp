@@ -64,11 +64,11 @@ export default function Login() {
           <div className="p-8">
             <form onSubmit={handleSubmit} className="space-y-5">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Username or Email</label>
+                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email Address</label>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input 
-                    placeholder="Enter your username" 
+                    placeholder="Enter your email" 
                     value={username} 
                     onChange={e => setUsername(e.target.value)} 
                     required 

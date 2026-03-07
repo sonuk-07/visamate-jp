@@ -99,12 +99,15 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'password', 'email', 'first_name', 'last_name')
+        extra_kwargs = {
+            'username': {'required': False},
+        }
 
     def create(self, validated_data):
         """
         Create a new user with hashed password.
         
-        Uses Django's create_user method to properly hash the password.
+        Auto-generates username from email if not provided.
         
         Args:
             validated_data (dict): Validated registration data.
@@ -112,6 +115,15 @@ class RegisterSerializer(serializers.ModelSerializer):
         Returns:
             User: The newly created user instance.
         """
+        if not validated_data.get('username'):
+            base = validated_data['email'].split('@')[0]
+            username = base
+            counter = 1
+            while User.objects.filter(username=username).exists():
+                username = f"{base}{counter}"
+                counter += 1
+            validated_data['username'] = username
+
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],

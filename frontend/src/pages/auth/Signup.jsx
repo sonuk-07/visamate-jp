@@ -11,7 +11,8 @@ export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
-    username: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: ''
@@ -44,7 +45,8 @@ export default function Signup() {
     setLoading(true);
     try {
       await authApi.register({
-        username: formData.username,
+        first_name: formData.firstName,
+        last_name: formData.lastName,
         email: formData.email,
         password: formData.password
       });
@@ -52,7 +54,7 @@ export default function Signup() {
       setStep('otp');
       setResendTimer(60);
     } catch (error) {
-      const errorMsg = error.response?.data?.username?.[0] || error.response?.data?.email?.[0] || error.response?.data?.error || 'Registration failed';
+      const errorMsg = error.response?.data?.email?.[0] || error.response?.data?.error || 'Registration failed';
       toast.error(errorMsg);
     } finally {
       setLoading(false);
@@ -182,18 +184,34 @@ export default function Signup() {
             {step === 'form' ? (
               <>
                 <form onSubmit={handleSubmit} className="space-y-5">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Username</label>
-                    <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <Input 
-                        name="username"
-                        placeholder="johndoe" 
-                        value={formData.username} 
-                        onChange={handleChange} 
-                        required 
-                        className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] transition-all"
-                      />
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">First Name</label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input 
+                          name="firstName"
+                          placeholder="John" 
+                          value={formData.firstName} 
+                          onChange={handleChange} 
+                          required 
+                          className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] transition-all"
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Last Name</label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Input 
+                          name="lastName"
+                          placeholder="Doe" 
+                          value={formData.lastName} 
+                          onChange={handleChange} 
+                          required 
+                          className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] transition-all"
+                        />
+                      </div>
                     </div>
                   </div>
                   
