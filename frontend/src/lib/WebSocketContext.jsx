@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/AuthContext';
 
 const WebSocketContext = createContext(null);
 
-const WS_BASE = import.meta.env.VITE_WS_URL || 'ws://localhost:8000';
+const WS_BASE = import.meta.env.VITE_WS_URL || `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`;
 const RECONNECT_BASE_DELAY = 1000;
 const RECONNECT_MAX_DELAY = 30000;
 
