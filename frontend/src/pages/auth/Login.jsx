@@ -19,9 +19,9 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(username, password);
+      const userData = await login(username, password);
       toast.success('Logged in successfully');
-      navigate('/');
+      navigate(userData.is_staff ? '/admin' : '/');
     } catch (error) {
       toast.error('Invalid credentials');
     } finally {

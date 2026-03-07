@@ -31,8 +31,9 @@ export const AuthProvider = ({ children }) => {
     const response = await authApi.login({ username, password });
     localStorage.setItem('access_token', response.data.access);
     localStorage.setItem('refresh_token', response.data.refresh);
-    await checkAuth();
-    return response.data;
+    const profileRes = await authApi.getProfile();
+    setUser(profileRes.data);
+    return profileRes.data;
   };
 
   const logout = () => {
