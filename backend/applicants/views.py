@@ -66,9 +66,9 @@ class ApplicantViewSet(viewsets.ModelViewSet):
         Configure permissions based on action.
         
         Returns:
-            list: AllowAny for read/create, IsAuthenticated for updates.
+            list: AllowAny for create, IsAuthenticated for all others.
         """
-        if self.action in ['create', 'list', 'retrieve']:
+        if self.action == 'create':
              return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 

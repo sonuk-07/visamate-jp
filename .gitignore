@@ -29,6 +29,14 @@ dist-ssr
 *.sw?
 
 # Python
+venv/
+__pycache__/
+*.pyc
+db.sqlite3
+staticfiles/
+media/
+
+# Python
 __pycache__/
 *.py[cod]
 *$py.class

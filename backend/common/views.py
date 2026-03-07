@@ -37,7 +37,7 @@ from .serializers import RegisterSerializer, UserSerializer, ContactMessageSeria
 from .models import ContactMessage, EmailOTP
 import os
 import httpx
-import random
+import secrets
 
 
 class RegisterView(APIView):
@@ -51,7 +51,7 @@ class RegisterView(APIView):
         user.is_active = False
         user.save()
 
-        otp_code = f"{random.randint(100000, 999999)}"
+        otp_code = f"{secrets.randbelow(900000) + 100000}"
         EmailOTP.objects.create(email=user.email, otp_code=otp_code, purpose='signup')
 
         send_mail(
@@ -178,7 +178,7 @@ class ResendOTPView(APIView):
         # Invalidate old OTPs
         EmailOTP.objects.filter(email=email, purpose='signup', is_used=False).update(is_used=True)
 
-        otp_code = f"{random.randint(100000, 999999)}"
+        otp_code = f"{secrets.randbelow(900000) + 100000}"
         EmailOTP.objects.create(email=email, otp_code=otp_code, purpose='signup')
 
         send_mail(
@@ -209,7 +209,7 @@ class ForgotPasswordView(APIView):
         # Invalidate old OTPs
         EmailOTP.objects.filter(email=email, purpose='password_reset', is_used=False).update(is_used=True)
 
-        otp_code = f"{random.randint(100000, 999999)}"
+        otp_code = f"{secrets.randbelow(900000) + 100000}"
         EmailOTP.objects.create(email=email, otp_code=otp_code, purpose='password_reset')
 
         send_mail(
@@ -235,8 +235,8 @@ class ResetPasswordView(APIView):
         if not email or not otp_code or not new_password:
             return Response({'error': 'Email, OTP, and new password are required.'}, status=status.HTTP_400_BAD_REQUEST)
 
-        if len(new_password) < 6:
-            return Response({'error': 'Password must be at least 6 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+        if len(new_password) < 8:
+            return Response({'error': 'Password must be at least 8 characters.'}, status=status.HTTP_400_BAD_REQUEST)
 
         otp = EmailOTP.objects.filter(email=email, otp_code=otp_code, purpose='password_reset', is_used=False).order_by('-created_at').first()
         if not otp:
@@ -354,9 +354,9 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
                 recipient_list=[message.email],
                 fail_silently=False,
             )
-        except Exception as e:
+        except Exception:
             return Response(
-                {'error': f'Failed to send email: {str(e)}'},
+                {'error': 'Failed to send reply email. Please try again later.'},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
         

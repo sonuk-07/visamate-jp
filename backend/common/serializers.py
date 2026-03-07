@@ -66,6 +66,7 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'is_staff')
+        read_only_fields = ('id', 'is_staff')
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -147,3 +148,4 @@ class ContactMessageSerializer(serializers.ModelSerializer):
     class Meta:
         model = ContactMessage
         fields = '__all__'
+        read_only_fields = ('is_read', 'admin_reply', 'replied_at', 'created_at')
