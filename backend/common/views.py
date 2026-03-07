@@ -33,8 +33,8 @@ from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.conf import settings
-from .serializers import RegisterSerializer, UserSerializer, ContactMessageSerializer
-from .models import ContactMessage, EmailOTP
+from .serializers import RegisterSerializer, UserSerializer, ContactMessageSerializer, UserDocumentSerializer
+from .models import ContactMessage, EmailOTP, UserDocument
 import os
 import httpx
 import secrets
@@ -553,3 +553,16 @@ class MyMessagesView(generics.ListAPIView):
             email=self.request.user.email,
             admin_reply__isnull=False,
         ).exclude(admin_reply='').order_by('-replied_at')
+
+
+class UserDocumentViewSet(viewsets.ModelViewSet):
+    """CRUD for user's personal documents (passport, ID, etc.)."""
+    serializer_class = UserDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    http_method_names = ['get', 'post', 'delete', 'head', 'options']
+
+    def get_queryset(self):
+        return UserDocument.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)

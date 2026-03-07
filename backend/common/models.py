@@ -25,6 +25,46 @@ Usage:
 """
 
 from django.db import models
+from django.contrib.auth.models import User
+
+
+class UserProfile(models.Model):
+    """Extended profile info attached to each user via one-to-one."""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    phone = models.CharField(max_length=20, blank=True, default='')
+    date_of_birth = models.DateField(null=True, blank=True)
+    nationality = models.CharField(max_length=100, blank=True, default='')
+    passport_number = models.CharField(max_length=50, blank=True, default='')
+    address = models.TextField(blank=True, default='')
+
+    def __str__(self):
+        return f"Profile: {self.user.username}"
+
+
+class UserDocument(models.Model):
+    """Personal documents uploaded by users (passport, ID, etc.)."""
+    DOCUMENT_TYPES = [
+        ('passport', 'Passport'),
+        ('national_id', 'National ID'),
+        ('birth_certificate', 'Birth Certificate'),
+        ('academic_transcript', 'Academic Transcript'),
+        ('language_certificate', 'Language Certificate'),
+        ('resume', 'Resume / CV'),
+        ('photo', 'Passport Photo'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_documents')
+    document_type = models.CharField(max_length=30, choices=DOCUMENT_TYPES)
+    title = models.CharField(max_length=255)
+    file = models.FileField(upload_to='user_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-uploaded_at']
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
 
 
 class Setting(models.Model):

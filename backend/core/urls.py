@@ -5,7 +5,7 @@ from django.conf.urls.static import static
 from rest_framework.routers import DefaultRouter
 from applicants.views import ApplicantViewSet, DocumentViewSet
 from appointments.views import AppointmentViewSet, AppointmentSlotViewSet
-from common.views import ContactEmailView, RegisterView, ProfileView, ContactMessageViewSet, ChatbotView, VerifyOTPView, ResendOTPView, ForgotPasswordView, ResetPasswordView, ChangePasswordView, MyMessagesView
+from common.views import ContactEmailView, RegisterView, ProfileView, ContactMessageViewSet, ChatbotView, VerifyOTPView, ResendOTPView, ForgotPasswordView, ResetPasswordView, ChangePasswordView, MyMessagesView, UserDocumentViewSet
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
     TokenRefreshView,
@@ -18,6 +18,7 @@ router.register(r'documents', DocumentViewSet)
 router.register(r'appointments', AppointmentViewSet)
 router.register(r'appointment-slots', AppointmentSlotViewSet)
 router.register(r'contact-messages', ContactMessageViewSet)
+router.register(r'user-documents', UserDocumentViewSet, basename='user-documents')
 
 urlpatterns = [
     path('admin/', admin.site.urls),
