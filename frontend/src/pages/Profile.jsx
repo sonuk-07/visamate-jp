@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
-import { User, ArrowLeft, Save, Loader2, Lock, Eye, EyeOff, Mail, AtSign } from 'lucide-react';
+import { User, ArrowLeft, Save, Loader2, Lock, Eye, EyeOff, Mail } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from '@/lib/AuthContext';
@@ -21,7 +21,6 @@ export default function Profile() {
     first_name: '',
     last_name: '',
     email: '',
-    username: '',
   });
   const [passwordData, setPasswordData] = useState({
     current_password: '',
@@ -38,7 +37,6 @@ export default function Profile() {
       first_name: user.first_name || '',
       last_name: user.last_name || '',
       email: user.email || '',
-      username: user.username || '',
     });
   }, [user, navigate]);
 
@@ -58,16 +56,13 @@ export default function Profile() {
       await authApi.updateProfile({
         first_name: formData.first_name,
         last_name: formData.last_name,
-        username: formData.username,
         email: formData.email,
       });
       await checkAuth();
       toast.success('Profile updated successfully');
     } catch (error) {
       const msg = error.response?.data;
-      if (msg?.username) {
-        toast.error(msg.username[0]);
-      } else if (msg?.email) {
+      if (msg?.email) {
         toast.error(msg.email[0]);
       } else {
         toast.error('Failed to update profile');
@@ -165,20 +160,6 @@ export default function Profile() {
                     onChange={handleChange}
                     placeholder="Enter your last name"
                     className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-[#1e3a5f] ml-1">Username</label>
-                <div className="relative">
-                  <AtSign className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                  <Input
-                    name="username"
-                    value={formData.username}
-                    onChange={handleChange}
-                    placeholder="Enter your username"
-                    className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
                   />
                 </div>
               </div>

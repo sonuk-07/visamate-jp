@@ -259,6 +259,20 @@ export const documentsApi = {
 };
 
 /**
+ * User Documents API namespace.
+ * Handles personal document uploads for user profiles.
+ * 
+ * @namespace userDocumentsApi
+ */
+export const userDocumentsApi = {
+  list: () => api.get('user-documents/'),
+  upload: (data) => api.post('user-documents/', data, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }),
+  delete: (id) => api.delete(`user-documents/${id}/`),
+};
+
+/**
  * Contact API namespace.
  * Handles contact form submissions.
  * 
