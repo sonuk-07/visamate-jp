@@ -1,6 +1,6 @@
 # VisaMate Japan
 
-A comprehensive visa consulting web application for students seeking to study abroad in Japan. The platform provides appointment booking, applicant management, and consulting services.
+A comprehensive visa consulting web application for students and professionals seeking to study or work abroad in **Japan** and **Australia**. The platform provides appointment booking, application tracking, and consulting services with a modern, polished UI.
 
 ## Table of Contents
 
@@ -19,18 +19,21 @@ A comprehensive visa consulting web application for students seeking to study ab
 ## Overview
 
 VisaMate Japan is a full-stack web application that helps:
-- **Students** book consultations, track their visa applications, and prepare for study abroad
-- **Consultants** manage appointments, view applicant information, and communicate with clients
-- **Admins** manage users, appointment slots, and system settings
+- **Students & Professionals** book consultations, submit visa applications, track application status, and prepare for departure
+- **Consultants** manage appointments, review applications, update statuses, and communicate with clients
+- **Admins** manage users, appointment slots, application workflows, and system settings
 
 ### Key Features
 
-- 🔐 **User Authentication**: JWT-based authentication with token refresh
-- 📅 **Appointment Booking**: Multi-step wizard with calendar date selection
-- 📧 **Email Notifications**: Automated confirmation emails for bookings
-- 👤 **User Profiles**: Personal dashboard with appointment history
-- 📄 **Document Management**: Upload and manage application documents
-- 🌐 **Multi-language Support**: Language context for internationalization
+- 🔐 **User Authentication**: JWT-based auth with OTP email verification, token refresh, and password reset
+- 📅 **Appointment Booking**: Multi-step wizard with interactive calendar and time slot selection
+- 📋 **Application Tracking**: Submit visa applications with a 5-step visual status tracker (Applied → Under Review → Interview → Visa Processing → Approved)
+- 📧 **Email Notifications**: Automated confirmation emails for bookings and OTP verification
+- 👤 **User Profiles**: Personal dashboard with appointment history and application management
+- 🛡️ **Admin Dashboard**: Manage applicants with inline status updates, appointment oversight, and admin notes
+- 🤖 **AI Chatbot**: Groq-powered chatbot for visa guidance and FAQs
+- 🌏 **Dual Destination**: Support for both Japan and Australia visa pathways (Student, Work, Skilled Worker, Working Holiday)
+- 🎨 **Consistent Design System**: Warm UI with navy/gold theme, gradient headers, and polished form styling
 
 ---
 
@@ -49,8 +52,9 @@ VisaMate Japan is a full-stack web application that helps:
 | Technology | Purpose |
 |------------|---------|
 | React 18 | UI framework |
-| Vite | Build tool & dev server |
+| Vite 6 | Build tool & dev server |
 | TailwindCSS | Styling |
+| shadcn/ui | UI component library |
 | Framer Motion | Animations |
 | Axios | HTTP client |
 | date-fns | Date manipulation |
@@ -69,18 +73,18 @@ visamate-jp/
 │   │   ├── urls.py             # Root URL routing
 │   │   └── wsgi.py             # WSGI entry point
 │   ├── agency/                 # Agency/admin app (future)
-│   ├── applicants/             # Applicant management
-│   │   ├── models.py           # Applicant, Document models
-│   │   ├── views.py            # REST API endpoints
-│   │   └── serializers.py      # DRF serializers
-│   ├── appointments/           # Appointment booking
+│   ├── applicants/             # Application tracking & management
+│   │   ├── models.py           # Applicant model (multi-status workflow)
+│   │   ├── views.py            # REST API with admin status updates
+│   │   └── serializers.py      # User & admin serializers
+│   ├── appointments/           # Appointment booking system
 │   │   ├── models.py           # Appointment, AppointmentSlot models
 │   │   ├── views.py            # Booking API endpoints
 │   │   ├── serializers.py      # DRF serializers
 │   │   └── emails.py           # Email notification functions
 │   ├── common/                 # Shared functionality
-│   │   ├── models.py           # Settings, ContactMessage models
-│   │   ├── views.py            # Auth & contact endpoints
+│   │   ├── models.py           # Settings, ContactMessage, EmailOTP models
+│   │   ├── views.py            # Auth, OTP verification, contact, chatbot
 │   │   └── serializers.py      # User, register serializers
 │   ├── .env                    # Environment variables (gitignored)
 │   ├── .env.example            # Environment template
@@ -92,16 +96,20 @@ visamate-jp/
 │   │   │   └── djangoClient.js # Axios API wrapper
 │   │   ├── components/         # Reusable components
 │   │   │   ├── ui/             # shadcn/ui components
-│   │   │   └── home/           # Home page sections
+│   │   │   ├── home/           # Home page sections
+│   │   │   └── Chatbot.jsx     # AI chatbot component
 │   │   ├── lib/                # Utilities & context
 │   │   │   ├── AuthContext.jsx # Authentication context
 │   │   │   └── utils.js        # Helper functions
 │   │   ├── pages/              # Page components
-│   │   │   ├── AppointmentBooking.jsx
-│   │   │   ├── Dashboard.jsx
 │   │   │   ├── Home.jsx
-│   │   │   └── auth/           # Login, Signup pages
-│   │   ├── App.jsx             # Main app component
+│   │   │   ├── Dashboard.jsx   # User dashboard with status tracker
+│   │   │   ├── AdminDashboard.jsx # Admin management panel
+│   │   │   ├── AppointmentBooking.jsx # Multi-step booking wizard
+│   │   │   ├── NewApplication.jsx # Application submission form
+│   │   │   ├── Profile.jsx     # Account settings
+│   │   │   └── auth/           # Login, Signup, ForgotPassword
+│   │   ├── App.jsx             # Main app with routing
 │   │   └── Layout.jsx          # App layout wrapper
 │   ├── package.json            # Dependencies
 │   └── vite.config.js          # Vite configuration
@@ -180,9 +188,14 @@ npm run dev
 |--------|----------|-------------|------|
 | POST | `/api/token/` | Get JWT tokens | No |
 | POST | `/api/token/refresh/` | Refresh access token | No |
-| POST | `/api/register/` | Register new user | No |
+| POST | `/api/register/` | Register new user (sends OTP) | No |
+| POST | `/api/verify-otp/` | Verify email OTP | No |
+| POST | `/api/resend-otp/` | Resend OTP code | No |
 | GET | `/api/profile/` | Get user profile | Yes |
 | PATCH | `/api/profile/` | Update user profile | Yes |
+| POST | `/api/change-password/` | Change password | Yes |
+| POST | `/api/forgot-password/` | Request password reset | No |
+| POST | `/api/reset-password/` | Reset password with OTP | No |
 
 ### Appointment Endpoints
 
@@ -200,17 +213,11 @@ npm run dev
 
 | Method | Endpoint | Description | Auth |
 |--------|----------|-------------|------|
-| POST | `/api/applicants/` | Create applicant profile | No |
-| GET | `/api/applicants/` | List applicants | Yes |
-| GET | `/api/applicants/{id}/` | Get applicant details | Yes |
-
-### Document Endpoints
-
-| Method | Endpoint | Description | Auth |
-|--------|----------|-------------|------|
-| GET | `/api/documents/` | List user's documents | Yes |
-| POST | `/api/documents/` | Upload document | Yes |
-| DELETE | `/api/documents/{id}/` | Delete document | Yes |
+| POST | `/api/applicants/` | Submit new application | No |
+| GET | `/api/applicants/` | List user's applications | Yes |
+| GET | `/api/applicants/{id}/` | Get application details | Yes |
+| PUT | `/api/applicants/{id}/` | Update application | Yes |
+| POST | `/api/applicants/{id}/update_status/` | Update status (admin) | Admin |
 
 ### Contact Endpoint
 
@@ -232,27 +239,34 @@ npm run dev
 
 | Component | Purpose |
 |-----------|---------|
-| `Layout.jsx` | App wrapper with navigation |
-| `AppointmentBooking.jsx` | Multi-step booking wizard |
-| `Dashboard.jsx` | User dashboard with appointments |
-| `AuthContext.jsx` | Authentication provider |
-| `djangoClient.js` | Configured Axios API client |
+| `Layout.jsx` | App wrapper with navigation and chatbot |
+| `AppointmentBooking.jsx` | Multi-step booking wizard with calendar |
+| `NewApplication.jsx` | Visa application submission form |
+| `Dashboard.jsx` | User dashboard with appointments & application tracker |
+| `AdminDashboard.jsx` | Admin panel for managing applicants and appointments |
+| `Profile.jsx` | Account settings with profile and password management |
+| `AuthContext.jsx` | Authentication provider with JWT token management |
+| `djangoClient.js` | Configured Axios API client with interceptors |
+| `Chatbot.jsx` | AI-powered chatbot (Groq) for visa guidance |
 
 ### Routing
 
-Routes are defined in `App.jsx` using React Router v6:
+Routes are defined in `page.config.js` using React Router v6:
 
 ```jsx
-/               → Home
-/login          → Login page
-/signup         → Registration page
-/dashboard      → User dashboard (protected)
-/profile        → User profile (protected)
-/book-appointment → Appointment booking
-/visa-guidance  → Visa information
+/                   → Home
+/login              → Login page
+/signup             → Registration with OTP verification
+/forgot-password    → Password reset
+/Dashboard          → User dashboard (protected)
+/profile            → Account settings (protected)
+/admin              → Admin dashboard (staff only)
+/NewApplication     → Submit visa application
+/book-appointment   → Appointment booking wizard
+/visa-guidance      → Visa information
 /university-selection → University info
 /application-support → Application help
-/pre-departure  → Pre-departure prep
+/pre-departure      → Pre-departure prep
 ```
 
 ---
@@ -286,15 +300,18 @@ Appointment
 └── created_at, updated_at
 
 Applicant
-├── user (FK to User)
+├── user (FK to User, multiple per user)
 ├── first_name, last_name, email, phone
-├── passport_number, status
-└── documents (reverse FK)
+├── destination_country (japan/australia)
+├── visa_type (student/work/skilled_worker/skilled_migration/working_holiday)
+├── education_level, preferred_start_date, message
+├── status (applied → reviewing → interview → visa_processing → approved/rejected)
+├── admin_notes
+└── created_at, updated_at
 
-Document
-├── applicant (FK to Applicant)
-├── title, file
-└── uploaded_at
+EmailOTP
+├── email, otp, created_at
+└── Used for email verification and password reset
 ```
 
 ---

@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
 import { authApi } from '@/api/djangoClient';
 import { motion } from 'framer-motion';
-import { User, Mail, Lock, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
+import { User, Mail, Lock, ArrowLeft, ArrowRight, CheckCircle, Eye, EyeOff, ShieldCheck } from 'lucide-react';
 
 export default function Signup() {
   const [showPassword, setShowPassword] = useState(false);
@@ -136,6 +136,12 @@ export default function Signup() {
         transition={{ duration: 0.5 }}
         className="relative w-full max-w-md"
       >
+        {/* Back to Home */}
+        <Link to="/" className="inline-flex items-center text-[#1e3a5f] hover:text-[#c9a962] mb-4 transition-colors">
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Home
+        </Link>
+
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
           {/* Header with gradient */}

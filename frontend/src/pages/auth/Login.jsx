@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Lock, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { User, Lock, ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
 export default function Login() {
   const [username, setUsername] = useState('');
@@ -44,6 +44,12 @@ export default function Login() {
         transition={{ duration: 0.5 }}
         className="relative w-full max-w-md"
       >
+        {/* Back to Home */}
+        <Link to="/" className="inline-flex items-center text-[#1e3a5f] hover:text-[#c9a962] mb-4 transition-colors">
+          <ArrowLeft className="w-5 h-5 mr-2" />
+          Back to Home
+        </Link>
+
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
           {/* Header with gradient */}
