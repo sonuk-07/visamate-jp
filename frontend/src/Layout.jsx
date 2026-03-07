@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, Globe, ChevronDown, LayoutDashboard, Settings, LogOut, Shield } from 'lucide-react';
+import { Menu, X, Globe, ChevronDown, LayoutDashboard, Settings, LogOut, Shield, User } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -75,6 +75,159 @@ export default function Layout({ children }) {
     }
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/Home');
+  };
+
+  // Authenticated user navbar
+  if (user) {
+    return (
+      <div className="min-h-screen">
+        <motion.nav
+          initial={{ y: -100 }}
+          animate={{ y: 0 }}
+          className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-md shadow-lg"
+        >
+          <div className="container mx-auto px-6 lg:px-12">
+            <div className="flex items-center justify-between h-20">
+              {/* Logo */}
+              <Link to="/Dashboard" className="flex items-center gap-3">
+                <img 
+                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69400f2c603e9672600c487c/f85b456f9_IMG_82332.jpg"
+                  alt="VisaMate Japan"
+                  className="h-10 w-10 object-contain"
+                />
+                <span className="text-xl font-bold text-[#1e3a5f]">
+                  VisaMate Japan
+                </span>
+              </Link>
+
+              {/* Right Side - Desktop */}
+              <div className="hidden lg:flex items-center gap-4">
+                {/* Language Switcher */}
+                <Button
+                  variant="ghost"
+                  onClick={toggleLanguage}
+                  className="flex items-center gap-2 font-medium text-gray-700 hover:text-[#1e3a5f]"
+                >
+                  <Globe className="w-4 h-4" />
+                  {language === 'en' ? '日本語' : 'English'}
+                </Button>
+
+                {/* User Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button className="flex items-center gap-2 font-medium px-4 py-2 rounded-full border border-gray-300 text-gray-700 hover:bg-gray-100 transition-colors">
+                      <div className="w-8 h-8 rounded-full bg-[#1e3a5f] text-white flex items-center justify-center text-sm font-bold">
+                        {(user.first_name || user.username || '?')[0].toUpperCase()}
+                      </div>
+                      <span className="max-w-[120px] truncate">{user.first_name || user.username}</span>
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem onClick={() => navigate('/Dashboard')} className="cursor-pointer">
+                      <LayoutDashboard className="w-4 h-4 mr-2" />
+                      {language === 'en' ? 'Dashboard' : 'ダッシュボード'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/MyProfile')} className="cursor-pointer">
+                      <User className="w-4 h-4 mr-2" />
+                      {language === 'en' ? 'Profile' : 'プロフィール'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => navigate('/MyProfile')} className="cursor-pointer">
+                      <Settings className="w-4 h-4 mr-2" />
+                      {language === 'en' ? 'Settings' : '設定'}
+                    </DropdownMenuItem>
+                    {user.is_staff && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer text-[#c9a962]">
+                          <Shield className="w-4 h-4 mr-2" />
+                          {language === 'en' ? 'Admin' : '管理者'}
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      {language === 'en' ? 'Logout' : 'ログアウト'}
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Mobile Menu Button */}
+              <button
+                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                className="lg:hidden p-2"
+              >
+                {isMobileMenuOpen ? <X className="text-[#1e3a5f]" /> : <Menu className="text-[#1e3a5f]" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile Menu - Authenticated */}
+          <AnimatePresence>
+            {isMobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="lg:hidden bg-white border-t"
+              >
+                <div className="container mx-auto px-6 py-6 space-y-3">
+                  <div className="flex items-center gap-3 pb-3 border-b">
+                    <div className="w-10 h-10 rounded-full bg-[#1e3a5f] text-white flex items-center justify-center text-sm font-bold">
+                      {(user.first_name || user.username || '?')[0].toUpperCase()}
+                    </div>
+                    <span className="font-medium text-[#1e3a5f]">{user.first_name || user.username}</span>
+                  </div>
+                  <Link to="/Dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start gap-2">
+                      <LayoutDashboard className="w-4 h-4" />
+                      {language === 'en' ? 'Dashboard' : 'ダッシュボード'}
+                    </Button>
+                  </Link>
+                  <Link to="/MyProfile" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button variant="outline" className="w-full justify-start gap-2">
+                      <User className="w-4 h-4" />
+                      {language === 'en' ? 'Profile & Settings' : 'プロフィール設定'}
+                    </Button>
+                  </Link>
+                  {user.is_staff && (
+                    <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
+                      <Button variant="outline" className="w-full justify-start gap-2 border-[#c9a962] text-[#c9a962]">
+                        <Shield className="w-4 h-4" />
+                        {language === 'en' ? 'Admin' : '管理者'}
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => { toggleLanguage(); setIsMobileMenuOpen(false); }}
+                    className="w-full justify-start gap-2"
+                  >
+                    <Globe className="w-4 h-4" />
+                    {language === 'en' ? '日本語' : 'English'}
+                  </Button>
+                  <Button onClick={() => { handleLogout(); setIsMobileMenuOpen(false); }} className="w-full justify-start gap-2 bg-red-600 mt-2">
+                    <LogOut className="w-4 h-4" />
+                    {language === 'en' ? 'Logout' : 'ログアウト'}
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.nav>
+
+        <main>{children}</main>
+        <Chatbot />
+      </div>
+    );
+  }
+
+  // Public (non-authenticated) navbar
   return (
     <div className="min-h-screen">
       {/* Navigation */}
@@ -133,57 +286,11 @@ export default function Layout({ children }) {
                 {language === 'en' ? '日本語' : 'English'}
               </Button>
 
-              {user ? (
-                <>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <button className={`flex items-center gap-2 font-medium px-4 py-2 rounded-full border transition-colors ${
-                        isScrolled
-                          ? 'border-gray-300 text-gray-700 hover:bg-gray-100'
-                          : 'border-[#1e3a5f]/30 text-[#1e3a5f] hover:bg-[#1e3a5f]/10'
-                      }`}>
-                        <div className="w-8 h-8 rounded-full bg-[#1e3a5f] text-white flex items-center justify-center text-sm font-bold">
-                          {(user.first_name || user.username || '?')[0].toUpperCase()}
-                        </div>
-                        <span className="max-w-[120px] truncate">{user.first_name || user.username}</span>
-                        <ChevronDown className="w-4 h-4" />
-                      </button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuItem onClick={() => navigate('/Dashboard')} className="cursor-pointer">
-                        <LayoutDashboard className="w-4 h-4 mr-2" />
-                        {language === 'en' ? 'Dashboard' : 'ダッシュボード'}
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => navigate('/Profile')} className="cursor-pointer">
-                        <Settings className="w-4 h-4 mr-2" />
-                        {language === 'en' ? 'Settings' : '設定'}
-                      </DropdownMenuItem>
-                      {user.is_staff && (
-                        <>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => navigate('/admin')} className="cursor-pointer text-[#c9a962]">
-                            <Shield className="w-4 h-4 mr-2" />
-                            {language === 'en' ? 'Admin' : '管理者'}
-                          </DropdownMenuItem>
-                        </>
-                      )}
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem onClick={logout} className="cursor-pointer text-red-600 focus:text-red-600">
-                        <LogOut className="w-4 h-4 mr-2" />
-                        {language === 'en' ? 'Logout' : 'ログアウト'}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </>
-              ) : (
-                <Link to="/login">
-                  <Button
-                    className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-6 rounded-full"
-                  >
-                    {language === 'en' ? 'Login' : 'ログイン'}
-                  </Button>
-                </Link>
-              )}
+              <Link to="/login">
+                <Button className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-6 rounded-full">
+                  {language === 'en' ? 'Login' : 'ログイン'}
+                </Button>
+              </Link>
 
               <Button
                 id="appointment-modal-trigger"
@@ -208,7 +315,7 @@ export default function Layout({ children }) {
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* Mobile Menu - Public */}
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
@@ -240,46 +347,11 @@ export default function Layout({ children }) {
                     <Globe className="w-4 h-4 mr-2" />
                     {language === 'en' ? '日本語' : 'English'}
                   </Button>
-                  {user ? (
-                    <>
-                      <div className="flex items-center gap-3 pb-3">
-                        <div className="w-10 h-10 rounded-full bg-[#1e3a5f] text-white flex items-center justify-center text-sm font-bold">
-                          {(user.first_name || user.username || '?')[0].toUpperCase()}
-                        </div>
-                        <span className="font-medium text-[#1e3a5f]">{user.first_name || user.username}</span>
-                      </div>
-                      <Link to="/Dashboard" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full justify-start gap-2">
-                          <LayoutDashboard className="w-4 h-4" />
-                          {language === 'en' ? 'Dashboard' : 'ダッシュボード'}
-                        </Button>
-                      </Link>
-                      <Link to="/Profile" onClick={() => setIsMobileMenuOpen(false)}>
-                        <Button variant="outline" className="w-full justify-start gap-2">
-                          <Settings className="w-4 h-4" />
-                          {language === 'en' ? 'Settings' : '設定'}
-                        </Button>
-                      </Link>
-                      {user.is_staff && (
-                        <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)}>
-                          <Button variant="outline" className="w-full justify-start gap-2 border-[#c9a962] text-[#c9a962]">
-                            <Shield className="w-4 h-4" />
-                            {language === 'en' ? 'Admin' : '管理者'}
-                          </Button>
-                        </Link>
-                      )}
-                      <Button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="w-full justify-start gap-2 bg-red-600">
-                        <LogOut className="w-4 h-4" />
-                        {language === 'en' ? 'Logout' : 'ログアウト'}
-                      </Button>
-                    </>
-                  ) : (
-                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
-                      <Button className="w-full bg-[#1e3a5f]">
-                        {language === 'en' ? 'Login' : 'ログイン'}
-                      </Button>
-                    </Link>
-                  )}
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Button className="w-full bg-[#1e3a5f]">
+                      {language === 'en' ? 'Login' : 'ログイン'}
+                    </Button>
+                  </Link>
                   <Button
                     onClick={() => { navigate('/AppointmentBooking'); setIsMobileMenuOpen(false); }}
                     className="w-full bg-[#c9a962] hover:bg-[#b89852] text-white"

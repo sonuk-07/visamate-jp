@@ -51,6 +51,7 @@ export default function Chatbot() {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [queryCount, setQueryCount] = useState(0);
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -102,10 +103,27 @@ export default function Chatbot() {
   /**
    * Sends a message and gets Groq AI response.
    * Detects inline booking/enquiry JSON and executes automatically.
+   * Tracks query count for non-logged-in users and suggests registration.
    * @param {string} text - The message text to send
    */
   const handleSendMessage = async (text) => {
     if (!text.trim()) return;
+
+    // Check if non-logged-in user is trying to book appointment
+    const appointmentKeywords = ['book', 'appointment', 'schedule', 'consultation', 'reserve'];
+    const isAppointmentRequest = appointmentKeywords.some(kw => text.toLowerCase().includes(kw));
+    
+    if (!user && isAppointmentRequest) {
+      setMessages(prev => [...prev,
+        { id: Date.now(), type: 'user', text: text.trim(), timestamp: new Date() },
+        { id: Date.now() + 1, type: 'bot', text: "To book an appointment, you need to be logged in. Please login or create an account first! 🔐\n\nI can still answer your questions about our services, visa processes, or study abroad programs.", timestamp: new Date(), showAuthButtons: true }
+      ]);
+      setInputValue('');
+      return;
+    }
+
+    const newCount = queryCount + 1;
+    setQueryCount(newCount);
 
     const userMessage = {
       id: Date.now(),
@@ -173,6 +191,18 @@ export default function Chatbot() {
       }]);
     } finally {
       setIsTyping(false);
+      // Suggest registration after 3+ queries for non-logged-in users
+      if (!user && newCount >= 3 && newCount % 3 === 0) {
+        setTimeout(() => {
+          setMessages(prev => [...prev, {
+            id: Date.now() + 10,
+            type: 'bot',
+            text: "💡 It looks like you have several questions! Creating an account gives you access to personalized support, appointment booking, application tracking, and more. Would you like to register?",
+            timestamp: new Date(),
+            showAuthButtons: true
+          }]);
+        }, 1500);
+      }
     }
   };
 
@@ -182,6 +212,13 @@ export default function Chatbot() {
    */
   const handleQuickAction = (action) => {
     if (action === 'appointment') {
+      if (!user) {
+        setMessages(prev => [...prev,
+          { id: Date.now(), type: 'user', text: 'I want to book an appointment', timestamp: new Date() },
+          { id: Date.now() + 1, type: 'bot', text: "To book an appointment, you need to be logged in. Please login or create an account first! 🔐\n\nYou can still ask me any questions about our services, visa processes, or study abroad programs.", timestamp: new Date(), showAuthButtons: true }
+        ]);
+        return;
+      }
       handleSendMessage('I want to book an appointment');
     } else if (action === 'enquiry') {
       handleSendMessage('I want to submit an enquiry');
@@ -281,6 +318,22 @@ export default function Chatbot() {
                     }`}
                   >
                     <p className="text-sm whitespace-pre-line">{message.text}</p>
+                    {message.showAuthButtons && !user && (
+                      <div className="flex gap-2 mt-3">
+                        <button
+                          onClick={() => navigate('/login')}
+                          className="px-3 py-1.5 text-xs font-medium bg-[#1e3a5f] text-white rounded-full hover:bg-[#2a4a6f] transition-colors"
+                        >
+                          Login
+                        </button>
+                        <button
+                          onClick={() => navigate('/signup')}
+                          className="px-3 py-1.5 text-xs font-medium bg-[#c9a962] text-white rounded-full hover:bg-[#b89852] transition-colors"
+                        >
+                          Register
+                        </button>
+                      </div>
+                    )}
                     <p className={`text-xs mt-1 ${
                       message.type === 'user' ? 'text-white/60' : 'text-gray-400'
                     }`}>
