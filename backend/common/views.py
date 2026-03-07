@@ -36,6 +36,7 @@ from django.conf import settings
 from django.utils.html import escape as html_escape
 from .serializers import RegisterSerializer, UserSerializer, ContactMessageSerializer, UserDocumentSerializer
 from .models import ContactMessage, EmailOTP, UserDocument
+from .notifications import send_ws_notification
 import os
 import httpx
 import secrets
@@ -350,6 +351,18 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
         message.is_read = True
         message.save()
         
+        # Send real-time WebSocket notification to the user
+        try:
+            matched_user = User.objects.filter(email=message.email).first()
+            if matched_user:
+                send_ws_notification(
+                    f'user_{matched_user.id}',
+                    'message_update',
+                    {'message_id': message.id},
+                )
+        except Exception:
+            pass
+        
         # Send HTML notification email (teaser only, no reply content)
         login_url = f"{FRONTEND_URL}/login?redirect=/Dashboard?tab=messages"
         safe_name = html_escape(message.name)
@@ -534,6 +547,15 @@ class ChatbotView(APIView):
                 message=data.get('message', ''),
                 status='pending',
             )
+            # Notify admins of new appointment
+            try:
+                send_ws_notification(
+                    'admin_notifications',
+                    'new_appointment',
+                    {'appointment_id': appointment.id, 'name': appointment.full_name},
+                )
+            except Exception:
+                pass
             service_display = service_labels.get(appointment.service_type, appointment.service_type)
             return Response({
                 'reply': f"✅ Your appointment has been booked successfully!\n\n📋 **Booking Details:**\n- Name: {appointment.full_name}\n- Service: {service_display}\n- Status: Pending\n\nOur team will confirm your appointment shortly. You'll receive a confirmation email at {appointment.email}. Is there anything else I can help with?",
@@ -551,13 +573,22 @@ class ChatbotView(APIView):
             return Response({'error': f'Missing fields: {", ".join(missing)}'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
-            ContactMessage.objects.create(
+            msg = ContactMessage.objects.create(
                 name=data['name'],
                 email=data['email'],
                 phone=data.get('phone', ''),
                 message=data['message'],
                 destination=data.get('destination', 'Japan'),
             )
+            # Notify admins of new enquiry
+            try:
+                send_ws_notification(
+                    'admin_notifications',
+                    'new_enquiry',
+                    {'message_id': msg.id, 'name': msg.name},
+                )
+            except Exception:
+                pass
             return Response({
                 'reply': f"✅ Your enquiry has been submitted successfully!\n\nWe've received your message and our team will get back to you at {data['email']} within 24 hours. Is there anything else you'd like to know?",
                 'action_completed': 'submit_enquiry',

@@ -33,6 +33,7 @@ from datetime import datetime, timedelta
 from .models import Appointment, AppointmentSlot
 from .serializers import AppointmentSerializer, AppointmentSlotSerializer
 from .emails import send_appointment_confirmation, send_admin_notification
+from common.notifications import send_ws_notification
 
 
 class AppointmentSlotViewSet(viewsets.ModelViewSet):
@@ -310,6 +311,17 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         if new_status == 'confirmed':
             appointment.is_confirmed = True
         appointment.save()
+        
+        # Send real-time WebSocket notification to the user
+        if appointment.user_id:
+            try:
+                send_ws_notification(
+                    f'user_{appointment.user_id}',
+                    'appointment_update',
+                    {'appointment_id': appointment.id, 'status': new_status},
+                )
+            except Exception:
+                pass
         
         serializer = self.get_serializer(appointment)
         return Response(serializer.data)

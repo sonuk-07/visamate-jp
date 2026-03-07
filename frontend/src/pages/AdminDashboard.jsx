@@ -11,7 +11,7 @@
  * @module AdminDashboard
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -73,6 +73,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/lib/AuthContext';
 import { adminApi, appointmentSlotsApi } from '@/api/djangoClient';
+import { useWebSocket } from '@/lib/WebSocketContext';
 import { toast } from 'sonner';
 
 /**
@@ -155,7 +156,7 @@ export default function AdminDashboard() {
     }
   }, [user]);
 
-  const loadAllData = async () => {
+  const loadAllData = useCallback(async () => {
     setLoading(true);
     try {
       await Promise.all([
@@ -171,7 +172,19 @@ export default function AdminDashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Real-time admin notifications via WebSocket
+  useWebSocket('new_appointment', (msg) => {
+    toast.info(`New appointment from ${msg.data?.name || 'a user'}`);
+    loadAppointments();
+    loadStats();
+  });
+
+  useWebSocket('new_enquiry', (msg) => {
+    toast.info(`New enquiry from ${msg.data?.name || 'a user'}`);
+    loadMessages();
+  });
 
   const loadStats = async () => {
     try {

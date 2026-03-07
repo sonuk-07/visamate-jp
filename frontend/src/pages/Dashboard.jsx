@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
 import {
@@ -10,6 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/lib/AuthContext';
 import { appointmentsApi, applicantsApi } from '@/api/djangoClient';
+import { useWebSocket } from '@/lib/WebSocketContext';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 
@@ -28,7 +29,7 @@ export default function Dashboard() {
     fetchData();
   }, [user, navigate]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       const [appointmentsRes, applicantsRes] = await Promise.all([
@@ -43,7 +44,22 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Re-fetch when appointment or application status changes via WebSocket
+  useWebSocket('appointment_update', (msg) => {
+    toast.info('An appointment was updated');
+    fetchData();
+  });
+
+  useWebSocket('application_update', (msg) => {
+    toast.info('An application was updated');
+    fetchData();
+  });
+
+  useWebSocket('message_update', () => {
+    toast.info('You have a new message');
+  });
 
   const handleCancelAppointment = async (id) => {
     if (!confirm('Are you sure you want to cancel this appointment?')) return;

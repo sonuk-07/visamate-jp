@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { MessageSquare, Mail, Loader2 } from 'lucide-react';
@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/lib/AuthContext';
 import { myMessagesApi } from '@/api/djangoClient';
+import { useWebSocket } from '@/lib/WebSocketContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -15,23 +16,30 @@ export default function Messages() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchMessages = useCallback(async () => {
+    try {
+      const res = await myMessagesApi.list();
+      setMessages(res.data || []);
+    } catch {
+      toast.error('Failed to load messages');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-    const fetch = async () => {
-      try {
-        const res = await myMessagesApi.list();
-        setMessages(res.data || []);
-      } catch {
-        toast.error('Failed to load messages');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-  }, [user, navigate]);
+    fetchMessages();
+  }, [user, navigate, fetchMessages]);
+
+  // Re-fetch when admin replies to a message
+  useWebSocket('message_update', () => {
+    toast.info('You received a new reply!');
+    fetchMessages();
+  });
 
   if (!user) return null;
 

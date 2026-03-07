@@ -32,6 +32,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from .models import Applicant, Document
 from .serializers import ApplicantSerializer, AdminApplicantSerializer, DocumentSerializer
+from common.notifications import send_ws_notification
 
 
 class ApplicantViewSet(viewsets.ModelViewSet):
@@ -106,6 +107,18 @@ class ApplicantViewSet(viewsets.ModelViewSet):
         if admin_notes is not None:
             application.admin_notes = admin_notes
         application.save()
+        
+        # Send real-time WebSocket notification to the user
+        if application.user_id:
+            try:
+                send_ws_notification(
+                    f'user_{application.user_id}',
+                    'application_update',
+                    {'application_id': application.id, 'status': new_status},
+                )
+            except Exception:
+                pass
+        
         serializer = self.get_serializer(application)
         return Response(serializer.data)
 

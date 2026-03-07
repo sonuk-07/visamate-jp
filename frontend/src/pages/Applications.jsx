@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useAuth } from '@/lib/AuthContext';
 import { applicantsApi } from '@/api/djangoClient';
+import { useWebSocket } from '@/lib/WebSocketContext';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -166,23 +167,30 @@ export default function Applications() {
   const [applications, setApplications] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchApplications = useCallback(async () => {
+    try {
+      const res = await applicantsApi.list();
+      setApplications(res.data || []);
+    } catch {
+      toast.error('Failed to load applications');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!user) {
       navigate('/login');
       return;
     }
-    const fetch = async () => {
-      try {
-        const res = await applicantsApi.list();
-        setApplications(res.data || []);
-      } catch {
-        toast.error('Failed to load applications');
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetch();
-  }, [user, navigate]);
+    fetchApplications();
+  }, [user, navigate, fetchApplications]);
+
+  // Re-fetch when application status changes via WebSocket
+  useWebSocket('application_update', () => {
+    toast.info('Your application status was updated');
+    fetchApplications();
+  });
 
   if (!user) return null;
 

@@ -5,6 +5,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { pagesConfig } from './page.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { WebSocketProvider } from '@/lib/WebSocketContext';
 import Login from '@/pages/auth/Login';
 import Signup from '@/pages/auth/Signup';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
@@ -115,10 +116,12 @@ function App() {
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
+        <WebSocketProvider>
+          <Router>
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </WebSocketProvider>
       </QueryClientProvider>
     </AuthProvider>
   )
