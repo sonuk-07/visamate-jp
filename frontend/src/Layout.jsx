@@ -113,12 +113,22 @@ export default function Layout({ children }) {
               </Button>
 
               {user ? (
-                <Button
-                  onClick={logout}
-                  className="bg-red-600 hover:bg-red-700 text-white px-6 rounded-full"
-                >
-                  {language === 'en' ? 'Logout' : 'ログアウト'}
-                </Button>
+                <>
+                  <Link to="/Dashboard">
+                    <Button
+                      variant="outline"
+                      className="border-[#1e3a5f] text-[#1e3a5f] hover:bg-[#1e3a5f] hover:text-white px-6 rounded-full"
+                    >
+                      {language === 'en' ? 'Dashboard' : 'ダッシュボード'}
+                    </Button>
+                  </Link>
+                  <Button
+                    onClick={logout}
+                    className="bg-red-600 hover:bg-red-700 text-white px-6 rounded-full"
+                  >
+                    {language === 'en' ? 'Logout' : 'ログアウト'}
+                  </Button>
+                </>
               ) : (
                 <Link to="/login">
                   <Button
@@ -153,18 +163,25 @@ export default function Layout({ children }) {
         </div>
 
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle className="text-2xl font-bold text-[#1e3a5f]">
-                {language === 'en' ? 'Book Your Free Consultation' : '無料相談の予約'}
-              </DialogTitle>
-              <DialogDescription>
-                {language === 'en' 
-                  ? 'Tell us about your goals and we will get back to you within 24 hours.' 
-                  : 'あなたの目標について教えてください。24時間以内に折り返しご連絡いたします。'}
-              </DialogDescription>
-            </DialogHeader>
-            <AppointmentForm onSuccess={() => setIsModalOpen(false)} />
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-0 shadow-2xl shadow-[#1e3a5f]/20 p-0">
+            <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-6 rounded-t-3xl">
+              <DialogHeader>
+                <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
+                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
+                    <span className="text-xl">📅</span>
+                  </div>
+                  {language === 'en' ? 'Book Your Free Consultation' : '無料相談の予約'}
+                </DialogTitle>
+                <DialogDescription className="text-white/70 mt-2">
+                  {language === 'en' 
+                    ? 'Tell us about your goals and we will get back to you within 24 hours.' 
+                    : 'あなたの目標について教えてください。24時間以内に折り返しご連絡いたします。'}
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="p-8 bg-white rounded-b-3xl">
+              <AppointmentForm onSuccess={() => setIsModalOpen(false)} />
+            </div>
           </DialogContent>
         </Dialog>
 
@@ -188,29 +205,42 @@ export default function Layout({ children }) {
                     {item.label}
                   </a>
                 ))}
-                <div className="flex items-center gap-4 pt-4 border-t">
+                <div className="flex flex-col gap-3 pt-4 border-t">
                   <Button
                     variant="outline"
                     onClick={() => {
                       toggleLanguage();
                       setIsMobileMenuOpen(false);
                     }}
-                    className="flex-1"
+                    className="w-full"
                   >
                     <Globe className="w-4 h-4 mr-2" />
                     {language === 'en' ? '日本語' : 'English'}
                   </Button>
                   {user ? (
-                    <Button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="flex-1 bg-red-600">
-                      {language === 'en' ? 'Logout' : 'ログアウト'}
-                    </Button>
+                    <>
+                      <Link to="/Dashboard" onClick={() => setIsMobileMenuOpen(false)}>
+                        <Button variant="outline" className="w-full border-[#1e3a5f] text-[#1e3a5f]">
+                          {language === 'en' ? 'Dashboard' : 'ダッシュボード'}
+                        </Button>
+                      </Link>
+                      <Button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="w-full bg-red-600">
+                        {language === 'en' ? 'Logout' : 'ログアウト'}
+                      </Button>
+                    </>
                   ) : (
-                    <Link to="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
+                    <Link to="/login" onClick={() => setIsMobileMenuOpen(false)}>
                       <Button className="w-full bg-[#1e3a5f]">
                         {language === 'en' ? 'Login' : 'ログイン'}
                       </Button>
                     </Link>
                   )}
+                  <Button
+                    onClick={() => { setIsModalOpen(true); setIsMobileMenuOpen(false); }}
+                    className="w-full bg-[#c9a962] hover:bg-[#b89852] text-white"
+                  >
+                    {language === 'en' ? 'Get Started' : '相談予約'}
+                  </Button>
                 </div>
               </div>
             </motion.div>

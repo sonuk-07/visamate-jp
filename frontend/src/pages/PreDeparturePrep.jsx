@@ -91,6 +91,7 @@ export default function PreDeparturePrep() {
           <div className="mt-12 text-center">
             <Button
               size="lg"
+              onClick={() => document.getElementById('appointment-modal-trigger')?.click()}
               className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-12 py-6 text-lg rounded-full"
             >
               {t.preDeparture.cta}

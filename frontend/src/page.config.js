@@ -52,6 +52,8 @@ import UniversitySelection from './pages/UniversitySelection';
 import ApplicationSupport from './pages/ApplicationSupport';
 import VisaGuidance from './pages/VisaGuidance';
 import PreDeparturePrep from './pages/PreDeparturePrep';
+import Dashboard from './pages/Dashboard';
+import Profile from './pages/Profile';
 import __Layout from './Layout.jsx';
 
 
@@ -61,6 +63,8 @@ export const PAGES = {
     "ApplicationSupport": ApplicationSupport,
     "VisaGuidance": VisaGuidance,
     "PreDeparturePrep": PreDeparturePrep,
+    "Dashboard": Dashboard,
+    "profile": Profile,
 }
 
 export const pagesConfig = {

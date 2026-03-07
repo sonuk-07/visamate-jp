@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { CalendarIcon, Loader2 } from 'lucide-react';
+import { CalendarIcon, Loader2, User, Mail, Phone, FileText, MessageSquare } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -80,20 +80,35 @@ export default function AppointmentForm({ onSuccess }) {
     }
   }
 
+  const services = [
+    { value: 'visa_guidance', label: 'Visa Guidance', icon: '🛂' },
+    { value: 'university_selection', label: 'University Selection', icon: '🎓' },
+    { value: 'application_support', label: 'Application Support', icon: '📝' },
+    { value: 'pre_departure', label: 'Pre-Departure Prep', icon: '✈️' },
+  ];
+
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+        {/* Name and Email Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="full_name"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Full Name</FormLabel>
+                <FormLabel className="text-sm font-medium text-[#1e3a5f]">Full Name</FormLabel>
                 <FormControl>
-                  <Input placeholder="John Doe" {...field} />
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input 
+                      placeholder="John Doe" 
+                      {...field} 
+                      className="pl-11 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] transition-all"
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -102,27 +117,42 @@ export default function AppointmentForm({ onSuccess }) {
             name="email"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Email</FormLabel>
+                <FormLabel className="text-sm font-medium text-[#1e3a5f]">Email</FormLabel>
                 <FormControl>
-                  <Input placeholder="john@example.com" {...field} />
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input 
+                      placeholder="john@example.com" 
+                      {...field} 
+                      className="pl-11 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] transition-all"
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
         </div>
 
+        {/* Phone and Service Row */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <FormField
             control={form.control}
             name="phone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Phone Number</FormLabel>
+                <FormLabel className="text-sm font-medium text-[#1e3a5f]">Phone Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="+81 000-000-000" {...field} />
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input 
+                      placeholder="+81 70-0000-0000" 
+                      {...field} 
+                      className="pl-11 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] transition-all"
+                    />
+                  </div>
                 </FormControl>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
@@ -131,52 +161,64 @@ export default function AppointmentForm({ onSuccess }) {
             name="service_type"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Service Interested In</FormLabel>
+                <FormLabel className="text-sm font-medium text-[#1e3a5f]">Service Interested In</FormLabel>
                 <Select onValueChange={field.onChange} defaultValue={field.value}>
                   <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a service" />
+                    <SelectTrigger className="h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] transition-all">
+                      <div className="flex items-center gap-2">
+                        <FileText className="w-4 h-4 text-gray-400" />
+                        <SelectValue placeholder="Select a service" />
+                      </div>
                     </SelectTrigger>
                   </FormControl>
-                  <SelectContent>
-                    <SelectItem value="visa_guidance">Visa Guidance</SelectItem>
-                    <SelectItem value="university_selection">University Selection</SelectItem>
-                    <SelectItem value="application_support">Application Support</SelectItem>
-                    <SelectItem value="pre_departure">Pre-Departure Prep</SelectItem>
+                  <SelectContent className="rounded-xl border-gray-200">
+                    {services.map((service) => (
+                      <SelectItem 
+                        key={service.value} 
+                        value={service.value}
+                        className="rounded-lg focus:bg-[#faf8f5] cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{service.icon}</span>
+                          <span>{service.label}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
-                <FormMessage />
+                <FormMessage className="text-xs" />
               </FormItem>
             )}
           />
         </div>
 
+        {/* Date Picker */}
         <FormField
           control={form.control}
           name="appointment_date"
           render={({ field }) => (
             <FormItem className="flex flex-col">
-              <FormLabel>Preferred Date</FormLabel>
+              <FormLabel className="text-sm font-medium text-[#1e3a5f]">Preferred Date</FormLabel>
               <Popover>
                 <PopoverTrigger asChild>
                   <FormControl>
                     <Button
                       variant={"outline"}
                       className={cn(
-                        "w-full pl-3 text-left font-normal",
-                        !field.value && "text-muted-foreground"
+                        "h-12 rounded-xl border-gray-200 bg-[#faf8f5] hover:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] text-left font-normal transition-all justify-start",
+                        !field.value && "text-gray-500"
                       )}
                     >
+                      <CalendarIcon className="mr-3 h-4 w-4 text-gray-400" />
                       {field.value ? (
-                        format(field.value, "PPP")
+                        <span className="text-[#1e3a5f]">{format(field.value, "EEEE, MMMM d, yyyy")}</span>
                       ) : (
-                        <span>Pick a date</span>
+                        <span>Pick a date for your consultation</span>
                       )}
-                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                     </Button>
                   </FormControl>
                 </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
+                <PopoverContent className="w-auto p-0 rounded-xl border-gray-200 shadow-xl" align="start">
                   <Calendar
                     mode="single"
                     selected={field.value}
@@ -185,46 +227,60 @@ export default function AppointmentForm({ onSuccess }) {
                       date < new Date() || date < new Date("1900-01-01")
                     }
                     initialFocus
+                    className="rounded-xl"
                   />
                 </PopoverContent>
               </Popover>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
+        {/* Message */}
         <FormField
           control={form.control}
           name="message"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Additional Notes (Optional)</FormLabel>
+              <FormLabel className="text-sm font-medium text-[#1e3a5f]">Additional Notes (Optional)</FormLabel>
               <FormControl>
-                <Textarea 
-                  placeholder="Tell us more about your goals..." 
-                  className="resize-none" 
-                  {...field} 
-                />
+                <div className="relative">
+                  <MessageSquare className="absolute left-4 top-4 w-4 h-4 text-gray-400" />
+                  <Textarea 
+                    placeholder="Tell us more about your goals, preferred study destinations, or any questions..." 
+                    className="pl-11 min-h-[100px] rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962] resize-none transition-all" 
+                    {...field} 
+                  />
+                </div>
               </FormControl>
-              <FormMessage />
+              <FormMessage className="text-xs" />
             </FormItem>
           )}
         />
 
+        {/* Submit Button */}
         <Button 
           type="submit" 
           disabled={loading}
-          className="w-full bg-[#1e3a5f] hover:bg-[#2c5282] py-6 text-lg"
+          className="w-full h-14 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-xl text-base font-semibold transition-all duration-300 shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30 mt-2"
         >
           {loading ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Booking...
-            </>
+            <div className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin" />
+              <span>Booking your consultation...</span>
+            </div>
           ) : (
-            'Confirm Appointment'
+            <div className="flex items-center gap-2">
+              <CalendarIcon className="h-5 w-5" />
+              <span>Confirm Appointment</span>
+            </div>
           )}
         </Button>
+
+        {/* Info text */}
+        <p className="text-xs text-center text-gray-500 mt-4">
+          By booking, you agree to receive communication from VisaMate Japan regarding your consultation.
+        </p>
       </form>
     </Form>
   );
