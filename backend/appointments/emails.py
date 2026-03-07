@@ -1,3 +1,39 @@
+"""
+Appointments Email Module
+=========================
+
+This module provides email notification functions for the appointment
+booking system. It sends HTML and plain-text emails for:
+
+1. Customer confirmation emails when an appointment is booked
+2. Admin notification emails when a new booking is received
+
+Configuration:
+    The module uses Django's email settings from settings.py:
+    - EMAIL_HOST: SMTP server address
+    - EMAIL_PORT: SMTP port
+    - EMAIL_HOST_USER: SMTP username
+    - EMAIL_HOST_PASSWORD: SMTP password
+    - DEFAULT_FROM_EMAIL: Sender email address
+    - ADMIN_EMAIL: Admin notification recipient
+
+Functions:
+    - send_appointment_confirmation: Sends styled HTML confirmation to customer
+    - send_admin_notification: Sends plain-text notification to admin
+
+Usage:
+    from appointments.emails import send_appointment_confirmation
+    
+    # After creating an appointment
+    success = send_appointment_confirmation(appointment)
+    if success:
+        print("Email sent successfully")
+
+Error Handling:
+    Both functions catch exceptions and return False on failure,
+    logging the error message for debugging.
+"""
+
 from django.core.mail import send_mail, EmailMultiAlternatives
 from django.conf import settings
 from django.template.loader import render_to_string
@@ -5,7 +41,38 @@ from datetime import datetime
 
 
 def send_appointment_confirmation(appointment):
-    """Send confirmation email to customer after booking"""
+    """
+    Send a styled HTML confirmation email to the customer.
+    
+    Generates and sends a professional HTML email confirming the
+    appointment booking with full details and next steps.
+    
+    Args:
+        appointment (Appointment): The appointment object containing:
+            - full_name: Customer's name
+            - email: Customer's email address
+            - service_type: Type of service booked
+            - slot: Associated AppointmentSlot (optional)
+            - appointment_date: Fallback date if no slot
+    
+    Returns:
+        bool: True if email sent successfully, False otherwise.
+    
+    Email Content:
+        - Confirmation header with checkmark
+        - Appointment details (service, date, time)
+        - "What's Next" instructions
+        - Contact information footer
+    
+    Example:
+        >>> appointment = Appointment.objects.get(id=1)
+        >>> success = send_appointment_confirmation(appointment)
+        >>> print("Email sent!" if success else "Email failed")
+    
+    Note:
+        The function sends both HTML and plain-text versions for
+        compatibility with email clients that don't support HTML.
+    """
     
     service_labels = {
         'visa_guidance': 'Visa Guidance',
@@ -161,7 +228,39 @@ This is an automated message. Please do not reply directly to this email.
 
 
 def send_admin_notification(appointment):
-    """Send notification email to admin about new booking"""
+    """
+    Send a notification email to admin about a new booking.
+    
+    Sends a plain-text email to the configured admin address with
+    complete customer and appointment information.
+    
+    Args:
+        appointment (Appointment): The appointment object containing:
+            - full_name: Customer's name
+            - email: Customer's email address
+            - phone: Customer's phone number
+            - service_type: Type of service booked
+            - message: Optional notes from customer
+            - slot: Associated AppointmentSlot (optional)
+            - appointment_date: Fallback date if no slot
+    
+    Returns:
+        bool: True if email sent successfully, False otherwise.
+    
+    Email Content:
+        - Customer contact details (name, email, phone)
+        - Service type and scheduled time
+        - Customer message/notes
+        - Link to admin panel
+    
+    Example:
+        >>> appointment = Appointment.objects.get(id=1)
+        >>> success = send_admin_notification(appointment)
+        >>> print("Admin notified!" if success else "Notification failed")
+    
+    Configuration:
+        Sends to ADMIN_EMAIL defined in settings.py
+    """
     
     service_labels = {
         'visa_guidance': 'Visa Guidance',

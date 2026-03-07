@@ -1,3 +1,39 @@
+/**
+ * AppointmentBooking Page Component
+ * ==================================
+ * 
+ * A multi-step appointment booking wizard that allows users to:
+ * 1. Select a service type (visa guidance, university selection, etc.)
+ * 2. Choose a date and time slot from available options
+ * 3. Enter their contact details
+ * 4. Review and confirm the booking
+ * 
+ * Features:
+ * - Interactive calendar showing dates with available slots
+ * - Real-time slot availability checking
+ * - Pre-filled user data for authenticated users
+ * - Email confirmation sent on successful booking
+ * - Animated step transitions with Framer Motion
+ * 
+ * State Management:
+ * - step: Current wizard step (1-4)
+ * - selectedService: Chosen service type
+ * - selectedDate: Chosen appointment date
+ * - selectedSlot: Chosen time slot object
+ * - formData: User contact information
+ * 
+ * API Integration:
+ * - appointmentSlotsApi.datesWithSlots(): Get dates with availability
+ * - appointmentSlotsApi.available(): Get available slots for a date
+ * - appointmentsApi.create(): Submit the booking
+ * 
+ * @module AppointmentBooking
+ * @requires react
+ * @requires framer-motion
+ * @requires date-fns
+ * @requires @/api/djangoClient
+ */
+
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
@@ -15,6 +51,11 @@ import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { createPageUrl } from '../utils';
 
+/**
+ * Available service types for appointments.
+ * Each service has a unique value, display label, icon, and description.
+ * @constant {Array<Object>}
+ */
 const services = [
   { value: 'visa_guidance', label: 'Visa Guidance', icon: '🛂', description: 'Get expert guidance on visa requirements and application process' },
   { value: 'university_selection', label: 'University Selection', icon: '🎓', description: 'Find the perfect university for your academic goals' },
@@ -23,24 +64,53 @@ const services = [
   { value: 'general_consultation', label: 'General Consultation', icon: '💬', description: 'General questions and guidance' },
 ];
 
+/**
+ * AppointmentBooking Component
+ * 
+ * Multi-step appointment booking page with calendar and time slot selection.
+ * 
+ * @component
+ * @returns {JSX.Element} The appointment booking wizard
+ * 
+ * @example
+ * // Usage in router
+ * <Route path="/book-appointment" element={<AppointmentBooking />} />
+ */
 export default function AppointmentBooking() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  /** @type {[number, Function]} Current step in the booking wizard (1-4) */
   const [step, setStep] = useState(1);
+  
+  /** @type {[boolean, Function]} Loading state for form submission */
   const [loading, setLoading] = useState(false);
+  
+  /** @type {[boolean, Function]} Loading state for fetching slots */
   const [slotsLoading, setSlotsLoading] = useState(false);
   
   // Selection state
+  /** @type {[string|null, Function]} Selected service type value */
   const [selectedService, setSelectedService] = useState(null);
+  
+  /** @type {[Date|null, Function]} Selected appointment date */
   const [selectedDate, setSelectedDate] = useState(null);
+  
+  /** @type {[Object|null, Function]} Selected time slot object */
   const [selectedSlot, setSelectedSlot] = useState(null);
+  
+  /** @type {[Date, Function]} Currently displayed month in calendar */
   const [currentMonth, setCurrentMonth] = useState(new Date());
   
   // Slots data
+  /** @type {[Array, Function]} Available time slots for selected date */
   const [availableSlots, setAvailableSlots] = useState([]);
+  
+  /** @type {[Array<Date>, Function]} Dates that have available slots */
   const [datesWithSlots, setDatesWithSlots] = useState([]);
   
   // Form data
+  /** @type {[Object, Function]} User contact information form data */
   const [formData, setFormData] = useState({
     full_name: user ? `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username : '',
     email: user?.email || '',
@@ -48,18 +118,29 @@ export default function AppointmentBooking() {
     message: '',
   });
 
-  // Fetch dates with available slots
+  /**
+   * Fetch dates with available slots on component mount.
+   * Populates the datesWithSlots state for calendar highlighting.
+   */
   useEffect(() => {
     fetchDatesWithSlots();
   }, []);
 
-  // Fetch slots when date changes
+  /**
+   * Fetch available slots when date or service changes.
+   * Triggered whenever user selects a new date or switches services.
+   */
   useEffect(() => {
     if (selectedDate && selectedService) {
       fetchSlotsForDate(selectedDate);
     }
   }, [selectedDate, selectedService]);
 
+  /**
+   * Fetches all dates that have available appointment slots.
+   * Used to highlight bookable dates on the calendar.
+   * @async
+   */
   const fetchDatesWithSlots = async () => {
     try {
       const response = await appointmentSlotsApi.datesWithSlots();
@@ -69,6 +150,12 @@ export default function AppointmentBooking() {
     }
   };
 
+  /**
+   * Fetches available time slots for a specific date and service.
+   * Updates the availableSlots state with matching slots.
+   * @async
+   * @param {Date} date - The date to fetch slots for
+   */
   const fetchSlotsForDate = async (date) => {
     setSlotsLoading(true);
     try {
@@ -85,6 +172,10 @@ export default function AppointmentBooking() {
     }
   };
 
+  /**
+   * Handles service selection and advances to step 2.
+   * @param {string} service - The selected service value
+   */
   const handleServiceSelect = (service) => {
     setSelectedService(service);
     setSelectedDate(null);
@@ -92,12 +183,18 @@ export default function AppointmentBooking() {
     setStep(2);
   };
 
+  /**
+   * Handles date selection and clears any previously selected slot.
+   * @param {Date} date - The selected date
+   */
   const handleDateSelect = (date) => {
     setSelectedDate(date);
     setSelectedSlot(null);
   };
 
-  const handleSlotSelect = (slot) => {
+  /**
+   * Handles time slot selection.
+   * @param {Object} slot - The selected slot object
     setSelectedSlot(slot);
     setStep(3);
   };
