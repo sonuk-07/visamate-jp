@@ -276,6 +276,17 @@ export const contactApi = {
 };
 
 /**
+ * User messages API namespace.
+ * Fetch messages with admin replies for the authenticated user.
+ * 
+ * @namespace myMessagesApi
+ */
+export const myMessagesApi = {
+  /** List messages with admin replies for current user */
+  list: () => api.get('my-messages/'),
+};
+
+/**
  * Admin API namespace.
  * Admin-only endpoints for management.
  * 

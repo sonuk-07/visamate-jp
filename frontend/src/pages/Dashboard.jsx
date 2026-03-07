@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useNavigate, Link } from 'react-router-dom';
-import { Calendar, User, FileText, Clock, CheckCircle, XCircle, LogOut, Settings, ArrowLeft, Plus, MapPin, GraduationCap, Globe, MessageSquare } from 'lucide-react';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
+import { Calendar, User, FileText, Clock, CheckCircle, XCircle, LogOut, Settings, ArrowLeft, Plus, MapPin, GraduationCap, Globe, MessageSquare, Mail } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from '@/lib/AuthContext';
-import { appointmentsApi, applicantsApi } from '@/api/djangoClient';
+import { appointmentsApi, applicantsApi, myMessagesApi } from '@/api/djangoClient';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { createPageUrl } from '../utils';
@@ -160,9 +160,12 @@ function ApplicationCard({ application, getStatusBadge }) {
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [appointments, setAppointments] = useState([]);
   const [applications, setApplications] = useState([]);
+  const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
+  const defaultTab = searchParams.get('tab') || 'appointments';
 
   useEffect(() => {
     if (!user) {
@@ -175,12 +178,14 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [appointmentsRes, applicantsRes] = await Promise.all([
+      const [appointmentsRes, applicantsRes, messagesRes] = await Promise.all([
         appointmentsApi.list().catch(() => ({ data: [] })),
         applicantsApi.list().catch(() => ({ data: [] })),
+        myMessagesApi.list().catch(() => ({ data: [] })),
       ]);
       setAppointments(appointmentsRes.data || []);
       setApplications(applicantsRes.data || []);
+      setMessages(messagesRes.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
     } finally {
@@ -310,10 +315,18 @@ export default function Dashboard() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="appointments" className="space-y-6">
-          <TabsList className="grid w-full max-w-md grid-cols-2">
+        <Tabs defaultValue={defaultTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-lg grid-cols-3">
             <TabsTrigger value="appointments">Appointments</TabsTrigger>
             <TabsTrigger value="applications">Applications</TabsTrigger>
+            <TabsTrigger value="messages" className="relative">
+              Messages
+              {messages.length > 0 && (
+                <span className="ml-1.5 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#c9a962] rounded-full">
+                  {messages.length}
+                </span>
+              )}
+            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="appointments" className="space-y-4">
@@ -421,6 +434,66 @@ export default function Dashboard() {
                 </div>
                 {applications.map((application) => (
                   <ApplicationCard key={application.id} application={application} getStatusBadge={getStatusBadge} />
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="messages" className="space-y-4">
+            {loading ? (
+              <div className="flex justify-center py-12">
+                <div className="w-8 h-8 border-4 border-[#1e3a5f]/20 border-t-[#1e3a5f] rounded-full animate-spin"></div>
+              </div>
+            ) : messages.length === 0 ? (
+              <Card>
+                <CardContent className="py-12 text-center">
+                  <Mail className="w-12 h-12 mx-auto text-gray-400 mb-4" />
+                  <h3 className="text-lg font-semibold text-gray-700">No messages yet</h3>
+                  <p className="text-gray-500 mb-6">When the team replies to your inquiries, you'll see them here</p>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {messages.map((msg) => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                  >
+                    <Card>
+                      <CardContent className="p-6">
+                        <div className="flex items-start gap-4">
+                          <div className="w-12 h-12 bg-[#1e3a5f]/10 rounded-xl flex items-center justify-center shrink-0">
+                            <MessageSquare className="w-6 h-6 text-[#1e3a5f]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2 mb-2">
+                              <h3 className="font-semibold text-[#1e3a5f]">Reply from VisaMate</h3>
+                              {msg.replied_at && (
+                                <span className="text-xs text-gray-400 shrink-0">
+                                  {format(new Date(msg.replied_at), 'PPP p')}
+                                </span>
+                              )}
+                            </div>
+                            <div className="bg-[#1e3a5f]/5 rounded-lg p-4 mb-3">
+                              <p className="text-gray-700 whitespace-pre-wrap">{msg.admin_reply}</p>
+                            </div>
+                            <div className="bg-gray-50 rounded-lg p-3">
+                              <p className="text-xs text-gray-500 font-medium mb-1">Your original inquiry:</p>
+                              <p className="text-sm text-gray-600">{msg.message}</p>
+                            </div>
+                            {msg.destination && (
+                              <div className="mt-2">
+                                <Badge className="bg-[#1e3a5f]/10 text-[#1e3a5f] text-xs">
+                                  {msg.destination}
+                                </Badge>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
                 ))}
               </div>
             )}

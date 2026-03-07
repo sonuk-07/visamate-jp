@@ -39,6 +39,8 @@ import os
 import httpx
 import secrets
 
+FRONTEND_URL = os.getenv('FRONTEND_URL', 'http://localhost:5173')
+
 
 class RegisterView(APIView):
     """Register a new inactive user and send OTP to email."""
@@ -323,7 +325,7 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
     
     @action(detail=True, methods=['post'])
     def reply(self, request, pk=None):
-        """Reply to a contact message and send email to the sender."""
+        """Reply to a contact message and send notification email."""
         message = self.get_object()
         reply_text = request.data.get('reply', '').strip()
         
@@ -333,39 +335,61 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
                 status=status.HTTP_400_BAD_REQUEST
             )
         
-        # Send email to the enquiry sender
-        try:
-            send_mail(
-                subject=f'VisaMate Japan - Reply to Your Inquiry',
-                message=(
-                    f'Dear {message.name},\n\n'
-                    f'Thank you for contacting VisaMate Japan. Here is our response to your inquiry:\n\n'
-                    f'---\n'
-                    f'{reply_text}\n'
-                    f'---\n\n'
-                    f'Your original message:\n"{message.message}"\n\n'
-                    f'If you have further questions, feel free to reply to this email or contact us at:\n'
-                    f'Phone: +81 70 8338 5675\n'
-                    f'Email: info@visamatejapan.com\n\n'
-                    f'Best regards,\n'
-                    f'VisaMate Japan Team'
-                ),
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                recipient_list=[message.email],
-                fail_silently=False,
-            )
-        except Exception:
-            return Response(
-                {'error': 'Failed to send reply email. Please try again later.'},
-                status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
-        
-        # Save reply to the database
+        # Save reply to the database first
         from django.utils import timezone
         message.admin_reply = reply_text
         message.replied_at = timezone.now()
         message.is_read = True
         message.save()
+        
+        # Send HTML notification email (teaser only, no reply content)
+        login_url = f"{FRONTEND_URL}/login?redirect=/Dashboard?tab=messages"
+        html_message = f"""
+        <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background-color: #faf8f5;">
+          <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2a4a6f 100%); padding: 32px; text-align: center; border-radius: 12px 12px 0 0;">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">VisaMate Japan</h1>
+            <p style="color: rgba(255,255,255,0.7); margin: 8px 0 0; font-size: 14px;">Study Abroad Consultancy</p>
+          </div>
+          <div style="background: #ffffff; padding: 40px 32px; border-left: 1px solid #e5e7eb; border-right: 1px solid #e5e7eb;">
+            <h2 style="color: #1e3a5f; margin: 0 0 16px; font-size: 20px;">Hello {message.name},</h2>
+            <p style="color: #4b5563; line-height: 1.6; margin: 0 0 24px; font-size: 15px;">
+              You have a new reply to your inquiry from the VisaMate Japan team. 
+              Log in to your account to read the full message.
+            </p>
+            <div style="text-align: center; margin: 32px 0;">
+              <a href="{login_url}" 
+                 style="display: inline-block; background: #1e3a5f; color: #ffffff; text-decoration: none; padding: 14px 40px; border-radius: 12px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 12px rgba(30,58,95,0.3);">
+                Login to See Message
+              </a>
+            </div>
+            <div style="background: #faf8f5; border-radius: 8px; padding: 16px; margin-top: 24px;">
+              <p style="color: #6b7280; font-size: 13px; margin: 0;">
+                <strong style="color: #1e3a5f;">Your original inquiry:</strong><br/>
+                "{message.message[:100]}{"..." if len(message.message) > 100 else ""}"
+              </p>
+            </div>
+          </div>
+          <div style="background: #f9fafb; padding: 24px 32px; text-align: center; border-radius: 0 0 12px 12px; border: 1px solid #e5e7eb; border-top: 0;">
+            <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+              &copy; VisaMate Japan | <a href="{FRONTEND_URL}" style="color: #c9a962; text-decoration: none;">visamatejapan.com</a>
+            </p>
+          </div>
+        </div>
+        """
+        
+        try:
+            from django.core.mail import EmailMultiAlternatives
+            email = EmailMultiAlternatives(
+                subject='VisaMate Japan - You Have a New Message!',
+                body=f'Dear {message.name},\n\nYou have a new reply to your inquiry. Login to see the full message: {login_url}\n\nBest regards,\nVisaMate Japan Team',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to=[message.email],
+            )
+            email.attach_alternative(html_message, "text/html")
+            email.send(fail_silently=False)
+        except Exception:
+            # Reply is already saved, email failure shouldn't block
+            pass
         
         serializer = self.get_serializer(message)
         return Response(serializer.data)
@@ -517,3 +541,15 @@ class ChatbotView(APIView):
             })
         except Exception:
             return Response({'error': 'Failed to submit enquiry'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class MyMessagesView(generics.ListAPIView):
+    """Return contact messages (with admin replies) for the authenticated user."""
+    serializer_class = ContactMessageSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return ContactMessage.objects.filter(
+            email=self.request.user.email,
+            admin_reply__isnull=False,
+        ).exclude(admin_reply='').order_by('-replied_at')
