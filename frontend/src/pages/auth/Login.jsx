@@ -53,18 +53,9 @@ export default function Login() {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
           {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-10 text-center">
-            <Link to="/" className="inline-block mb-4">
-              <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto border border-white/20">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69400f2c603e9672600c487c/f85b456f9_IMG_82332.jpg"
-                  alt="VisaMate Japan"
-                  className="h-10 w-10 object-contain"
-                />
-              </div>
-            </Link>
-            <h2 className="text-2xl font-bold text-white">Welcome Back</h2>
-            <p className="text-white/70 mt-2 text-sm">Sign in to continue your journey</p>
+          <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-5 text-center">
+            <h2 className="text-xl font-bold text-white">Welcome Back</h2>
+            <p className="text-white/70 mt-1 text-sm">Sign in to continue your journey</p>
           </div>
 
           {/* Form */}

@@ -145,34 +145,25 @@ export default function Signup() {
         {/* Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
           {/* Header with gradient */}
-          <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-10 text-center">
-            <Link to="/" className="inline-block mb-4">
-              <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mx-auto border border-white/20">
-                <img 
-                  src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69400f2c603e9672600c487c/f85b456f9_IMG_82332.jpg"
-                  alt="VisaMate Japan"
-                  className="h-10 w-10 object-contain"
-                />
-              </div>
-            </Link>
-            <h2 className="text-2xl font-bold text-white">
+          <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-5 text-center">
+            <h2 className="text-xl font-bold text-white">
               {step === 'form' ? 'Create Your Account' : 'Verify Your Email'}
             </h2>
-            <p className="text-white/70 mt-2 text-sm">
+            <p className="text-white/70 mt-1 text-sm">
               {step === 'form' ? 'Start your study abroad journey today' : `We sent a 6-digit code to ${formData.email}`}
             </p>
             
             {step === 'form' && (
-              <div className="flex flex-wrap justify-center gap-3 mt-5">
+              <div className="flex flex-wrap justify-center gap-2 mt-3">
                 {benefits.map((benefit, index) => (
                   <motion.div
                     key={index}
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2 + index * 0.1 }}
-                    className="flex items-center gap-1.5 text-xs text-white/80 bg-white/10 px-3 py-1.5 rounded-full"
+                    className="flex items-center gap-1.5 text-xs text-white/80 bg-white/10 px-2.5 py-1 rounded-full"
                   >
-                    <CheckCircle className="w-3.5 h-3.5 text-[#c9a962]" />
+                    <CheckCircle className="w-3 h-3 text-[#c9a962]" />
                     {benefit}
                   </motion.div>
                 ))}
@@ -180,8 +171,8 @@ export default function Signup() {
             )}
 
             {step === 'otp' && (
-              <div className="mt-5">
-                <ShieldCheck className="w-12 h-12 text-[#c9a962] mx-auto" />
+              <div className="mt-3">
+                <ShieldCheck className="w-10 h-10 text-[#c9a962] mx-auto" />
               </div>
             )}
           </div>
