@@ -54,6 +54,7 @@ import VisaGuidance from './pages/VisaGuidance';
 import PreDeparturePrep from './pages/PreDeparturePrep';
 import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
+import AppointmentBooking from './pages/AppointmentBooking';
 import __Layout from './Layout.jsx';
 
 
@@ -65,6 +66,7 @@ export const PAGES = {
     "PreDeparturePrep": PreDeparturePrep,
     "Dashboard": Dashboard,
     "profile": Profile,
+    "AppointmentBooking": AppointmentBooking,
 }
 
 export const pagesConfig = {

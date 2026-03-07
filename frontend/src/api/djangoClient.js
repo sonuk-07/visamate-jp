@@ -57,7 +57,15 @@ export const appointmentsApi = {
   create: (data) => api.post('appointments/', data),
   list: () => api.get('appointments/'),
   get: (id) => api.get(`appointments/${id}/`),
-  cancel: (id) => api.delete(`appointments/${id}/`),
+  cancel: (id) => api.post(`appointments/${id}/cancel/`),
+  myAppointments: () => api.get('appointments/my_appointments/'),
+};
+
+export const appointmentSlotsApi = {
+  list: (params) => api.get('appointment-slots/', { params }),
+  available: (params) => api.get('appointment-slots/available/', { params }),
+  datesWithSlots: () => api.get('appointment-slots/dates_with_slots/'),
+  get: (id) => api.get(`appointment-slots/${id}/`),
 };
 
 export const applicantsApi = {

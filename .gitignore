@@ -1,6 +1,7 @@
-#env
+# Environment files
 .env
 .env.*
+!.env.example
 
 # Logs
 logs
@@ -27,4 +28,29 @@ dist-ssr
 *.sln
 *.sw?
 
-.env
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+ENV/
+*.egg-info/
+.eggs/
+*.egg
+
+# Django
+*.sqlite3
+db.sqlite3
+**/migrations/*.py
+!**/migrations/__init__.py
+staticfiles/
+media/
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd

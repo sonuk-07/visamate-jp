@@ -1,23 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from './utils';
 import { useAuth } from '@/lib/AuthContext';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
-import AppointmentForm from './components/AppointmentForm';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
+  const navigate = useNavigate();
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [language, setLanguage] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -141,10 +133,10 @@ export default function Layout({ children }) {
 
               <Button
                 id="appointment-modal-trigger"
-                onClick={() => setIsModalOpen(true)}
+                onClick={() => navigate('/AppointmentBooking')}
                 className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-6 rounded-full"
               >
-                {language === 'en' ? 'Get Started' : '相談予約'}
+                {language === 'en' ? 'Book Now' : '予約する'}
               </Button>
             </div>
 
@@ -161,29 +153,6 @@ export default function Layout({ children }) {
             </button>
           </div>
         </div>
-
-        <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl border-0 shadow-2xl shadow-[#1e3a5f]/20 p-0">
-            <div className="bg-gradient-to-r from-[#1e3a5f] to-[#2a4a6f] px-8 py-6 rounded-t-3xl">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-bold text-white flex items-center gap-3">
-                  <div className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center">
-                    <span className="text-xl">📅</span>
-                  </div>
-                  {language === 'en' ? 'Book Your Free Consultation' : '無料相談の予約'}
-                </DialogTitle>
-                <DialogDescription className="text-white/70 mt-2">
-                  {language === 'en' 
-                    ? 'Tell us about your goals and we will get back to you within 24 hours.' 
-                    : 'あなたの目標について教えてください。24時間以内に折り返しご連絡いたします。'}
-                </DialogDescription>
-              </DialogHeader>
-            </div>
-            <div className="p-8 bg-white rounded-b-3xl">
-              <AppointmentForm onSuccess={() => setIsModalOpen(false)} />
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Mobile Menu */}
         <AnimatePresence>
@@ -236,10 +205,10 @@ export default function Layout({ children }) {
                     </Link>
                   )}
                   <Button
-                    onClick={() => { setIsModalOpen(true); setIsMobileMenuOpen(false); }}
+                    onClick={() => { navigate('/AppointmentBooking'); setIsMobileMenuOpen(false); }}
                     className="w-full bg-[#c9a962] hover:bg-[#b89852] text-white"
                   >
-                    {language === 'en' ? 'Get Started' : '相談予約'}
+                    {language === 'en' ? 'Book Now' : '予約する'}
                   </Button>
                 </div>
               </div>

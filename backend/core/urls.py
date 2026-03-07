@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from applicants.views import ApplicantViewSet, DocumentViewSet
-from appointments.views import AppointmentViewSet
+from appointments.views import AppointmentViewSet, AppointmentSlotViewSet
 from common.views import ContactEmailView, RegisterView, ProfileView
 from rest_framework_simplejwt.views import (
     TokenObtainPairView,
@@ -13,6 +13,7 @@ router = DefaultRouter()
 router.register(r'applicants', ApplicantViewSet)
 router.register(r'documents', DocumentViewSet)
 router.register(r'appointments', AppointmentViewSet)
+router.register(r'appointment-slots', AppointmentSlotViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
