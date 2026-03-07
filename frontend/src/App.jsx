@@ -13,14 +13,28 @@ import Login from '@/pages/auth/Login';
 import Signup from '@/pages/auth/Signup';
 import ForgotPassword from '@/pages/auth/ForgotPassword';
 import AdminDashboard from '@/pages/AdminDashboard';
+import DashboardLayout from '@/components/DashboardLayout';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
 const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
-const LayoutWrapper = ({ children, currentPageName }) => Layout ?
-  <Layout currentPageName={currentPageName}>{children}</Layout>
-  : <>{children}</>;
+// Pages that use DashboardLayout (authenticated)
+const DASHBOARD_PAGES = new Set([
+  'Dashboard', 'MyProfile', 'Profile', 'Applications', 'Messages',
+  'NewApplication', 'AppointmentBooking',
+]);
+
+const LayoutWrapper = ({ children, currentPageName }) => {
+  if (DASHBOARD_PAGES.has(currentPageName)) {
+    return (
+      <Layout currentPageName={currentPageName}>
+        <DashboardLayout>{children}</DashboardLayout>
+      </Layout>
+    );
+  }
+  return Layout ? <Layout currentPageName={currentPageName}>{children}</Layout> : <>{children}</>;
+};
 
 const AuthenticatedApp = () => {
   const { user, loading } = useAuth();
