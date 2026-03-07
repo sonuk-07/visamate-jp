@@ -50,6 +50,7 @@ import { appointmentsApi, appointmentSlotsApi } from '@/api/djangoClient';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { createPageUrl } from '../utils';
+import PhoneInput from '@/components/PhoneInput';
 
 /**
  * Available service types for appointments.
@@ -614,7 +615,7 @@ export default function AppointmentBooking() {
                   <form onSubmit={handleSubmit} className="space-y-5">
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#1e3a5f] ml-1">Full Name</label>
+                        <label className="text-sm font-medium text-[#1e3a5f] ml-1">Full Name <span className="text-red-500">*</span></label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                           <Input
@@ -629,7 +630,7 @@ export default function AppointmentBooking() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email Address</label>
+                        <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email Address <span className="text-red-500">*</span></label>
                         <div className="relative">
                           <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                           <Input
@@ -647,19 +648,12 @@ export default function AppointmentBooking() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Phone Number</label>
-                      <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                        <Input
-                          id="phone"
-                          name="phone"
-                          placeholder="+81 70-0000-0000"
-                          value={formData.phone}
-                          onChange={handleInputChange}
-                          required
-                          className="pl-12 h-12 rounded-xl border-gray-200 bg-[#faf8f5] focus:bg-white focus:ring-2 focus:ring-[#c9a962]/20 focus:border-[#c9a962]"
-                        />
-                      </div>
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Phone Number <span className="text-red-500">*</span></label>
+                      <PhoneInput
+                        value={formData.phone}
+                        onChange={(val) => setFormData(prev => ({ ...prev, phone: val }))}
+                        required
+                      />
                     </div>
 
                     <div className="space-y-2">

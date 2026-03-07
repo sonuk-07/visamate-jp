@@ -9,6 +9,7 @@ import { useLanguage } from '../LanguageContext';
 import { toast } from "sonner";
 import { contactApi } from '@/api/djangoClient';
 import { useAuth } from '@/lib/AuthContext';
+import PhoneInput from '@/components/PhoneInput';
 
 export default function ContactSection() {
   const { t, language } = useLanguage();
@@ -120,7 +121,7 @@ export default function ContactSection() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.contact.form.name}
+                    {t.contact.form.name} <span className="text-red-500">*</span>
                   </label>
                   <Input
                     value={formData.name}
@@ -131,7 +132,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    {t.contact.form.email}
+                    {t.contact.form.email} <span className="text-red-500">*</span>
                   </label>
                   <Input
                     type="email"
@@ -148,11 +149,9 @@ export default function ContactSection() {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     {t.contact.form.phone}
                   </label>
-                  <Input
-                    type="tel"
+                  <PhoneInput
                     value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="bg-white border-gray-200 rounded-xl h-12 focus:ring-[#1e3a5f] focus:border-[#1e3a5f]"
+                    onChange={(val) => setFormData({ ...formData, phone: val })}
                   />
                 </div>
                 <div>
@@ -177,7 +176,7 @@ export default function ContactSection() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {t.contact.form.message}
+                  {t.contact.form.message} <span className="text-red-500">*</span>
                 </label>
                 <Textarea
                   value={formData.message}

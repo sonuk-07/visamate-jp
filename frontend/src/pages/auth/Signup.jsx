@@ -186,7 +186,7 @@ export default function Signup() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">First Name</label>
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">First Name <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input 
@@ -200,7 +200,7 @@ export default function Signup() {
                       </div>
                     </div>
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Last Name</label>
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Last Name <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input 
@@ -216,7 +216,7 @@ export default function Signup() {
                   </div>
                   
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email Address</label>
+                    <label className="text-sm font-medium text-[#1e3a5f] ml-1">Email Address <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                       <Input 
@@ -233,7 +233,7 @@ export default function Signup() {
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Password</label>
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Password <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input 
@@ -256,7 +256,7 @@ export default function Signup() {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Confirm</label>
+                      <label className="text-sm font-medium text-[#1e3a5f] ml-1">Confirm <span className="text-red-500">*</span></label>
                       <div className="relative">
                         <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                         <Input 
