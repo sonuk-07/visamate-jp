@@ -5,6 +5,7 @@ import { Menu, X, Globe } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { createPageUrl } from './utils';
 import { useAuth } from '@/lib/AuthContext';
+import Chatbot from '@/components/Chatbot';
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -221,6 +222,9 @@ export default function Layout({ children }) {
       <main>
         {children}
       </main>
+
+      {/* Chatbot */}
+      <Chatbot />
     </div>
   );
 }

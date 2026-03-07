@@ -195,6 +195,8 @@ export default function AppointmentBooking() {
   /**
    * Handles time slot selection.
    * @param {Object} slot - The selected slot object
+   */
+  const handleSlotSelect = (slot) => {
     setSelectedSlot(slot);
     setStep(3);
   };
