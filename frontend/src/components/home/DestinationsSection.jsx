@@ -4,12 +4,8 @@ import { ArrowUpRight } from 'lucide-react';
 import { useLanguage } from '../LanguageContext';
 
 const countryImages = [
-  "https://images.unsplash.com/photo-1485738422979-f5c462d49f74?w=600&h=400&fit=crop", // USA
-  "https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=600&h=400&fit=crop", // UK
-  "https://images.unsplash.com/photo-1517935706615-2717063c2225?w=600&h=400&fit=crop", // Canada
-  "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=600&h=400&fit=crop", // Australia
-  "https://images.unsplash.com/photo-1467269204594-9661b134dd2b?w=600&h=400&fit=crop", // Germany
-  "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&h=400&fit=crop"  // Japan
+  "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=600&h=400&fit=crop", // Japan
+  "https://images.unsplash.com/photo-1523482580672-f109ba8cb9be?w=600&h=400&fit=crop"  // Australia
 ];
 
 export default function DestinationsSection() {
@@ -32,7 +28,7 @@ export default function DestinationsSection() {
           </p>
         </motion.div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
           {t.destinations.countries.map((country, index) => (
             <motion.div
               key={index}
@@ -62,6 +58,11 @@ export default function DestinationsSection() {
                       <p className="text-white/80 text-sm">
                         {country.universities}
                       </p>
+                      {country.description && (
+                        <p className="text-white/70 text-xs mt-2">
+                          {country.description}
+                        </p>
+                      )}
                     </div>
                     <motion.div
                       whileHover={{ scale: 1.1 }}

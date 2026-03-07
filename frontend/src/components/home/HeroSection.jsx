@@ -1,11 +1,14 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight, Play, LayoutDashboard } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { useLanguage } from '../LanguageContext';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function HeroSection() {
   const { t } = useLanguage();
+  const { user } = useAuth();
 
   return (
     <section className="relative min-h-screen flex items-center overflow-hidden bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea]">
@@ -69,17 +72,30 @@ export default function HeroSection() {
                 onClick={() => document.getElementById('appointment-modal-trigger')?.click()}
                 className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white px-8 py-6 text-base rounded-full group transition-all duration-300 shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30"
               >
-                {t.hero.cta}
+                {user ? t.hero.ctaLoggedIn : t.hero.cta}
                 <ArrowRight className="ml-2 w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="border-2 border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f]/5 px-8 py-6 text-base rounded-full transition-all duration-300"
-              >
-                <Play className="mr-2 w-5 h-5" />
-                {t.hero.secondaryCta}
-              </Button>
+              {user ? (
+                <Link to="/Dashboard">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="border-2 border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f]/5 px-8 py-6 text-base rounded-full transition-all duration-300"
+                  >
+                    <LayoutDashboard className="mr-2 w-5 h-5" />
+                    Dashboard
+                  </Button>
+                </Link>
+              ) : (
+                <Button
+                  size="lg"
+                  variant="outline"
+                  className="border-2 border-[#1e3a5f]/20 text-[#1e3a5f] hover:bg-[#1e3a5f]/5 px-8 py-6 text-base rounded-full transition-all duration-300"
+                >
+                  <Play className="mr-2 w-5 h-5" />
+                  {t.hero.secondaryCta}
+                </Button>
+              )}
             </motion.div>
 
             {/* Stats */}
@@ -89,11 +105,7 @@ export default function HeroSection() {
               transition={{ delay: 0.6 }}
               className="grid grid-cols-3 gap-8 mt-12 pt-12 border-t border-gray-200"
             >
-              {[
-                { value: "15+", label: "Years Experience" },
-                { value: "3,000+", label: "Students Placed" },
-                { value: "98%", label: "Success Rate" }
-              ].map((stat, index) => (
+              {t.hero.stats.map((stat, index) => (
                 <div key={index}>
                   <div className="text-3xl font-bold text-[#1e3a5f]">{stat.value}</div>
                   <div className="text-sm text-gray-500 mt-1">{stat.label}</div>

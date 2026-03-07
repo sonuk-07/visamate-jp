@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from 'react-router-dom';
 import api from '@/api/djangoClient';
+import { useAuth } from '@/lib/AuthContext';
 
 /**
  * Quick action buttons displayed in the chat.
@@ -38,6 +39,7 @@ const quickActions = [
  */
 export default function Chatbot() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState([
     {
@@ -124,7 +126,14 @@ export default function Chatbot() {
       }));
 
     try {
-      const response = await api.post('chat/', { messages: history });
+      const response = await api.post('chat/', {
+        messages: history,
+        user_info: user ? {
+          name: [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username,
+          email: user.email,
+          username: user.username,
+        } : null,
+      });
       const reply = response.data.reply;
 
       // Check if the AI returned a booking/enquiry action

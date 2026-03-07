@@ -110,6 +110,28 @@ class ProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
 
+class ChangePasswordView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request):
+        user = request.user
+        current_password = request.data.get('current_password', '')
+        new_password = request.data.get('new_password', '')
+
+        if not current_password or not new_password:
+            return Response({'error': 'Both current and new password are required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if not user.check_password(current_password):
+            return Response({'error': 'Current password is incorrect.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        if len(new_password) < 8:
+            return Response({'error': 'New password must be at least 8 characters.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+        return Response({'message': 'Password changed successfully.'}, status=status.HTTP_200_OK)
+
+
 class VerifyOTPView(APIView):
     """Verify OTP for signup email confirmation."""
     permission_classes = (permissions.AllowAny,)
@@ -299,6 +321,55 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
         message.save()
         return Response({'status': 'marked as read'})
     
+    @action(detail=True, methods=['post'])
+    def reply(self, request, pk=None):
+        """Reply to a contact message and send email to the sender."""
+        message = self.get_object()
+        reply_text = request.data.get('reply', '').strip()
+        
+        if not reply_text:
+            return Response(
+                {'error': 'Reply text is required.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        
+        # Send email to the enquiry sender
+        try:
+            send_mail(
+                subject=f'VisaMate Japan - Reply to Your Inquiry',
+                message=(
+                    f'Dear {message.name},\n\n'
+                    f'Thank you for contacting VisaMate Japan. Here is our response to your inquiry:\n\n'
+                    f'---\n'
+                    f'{reply_text}\n'
+                    f'---\n\n'
+                    f'Your original message:\n"{message.message}"\n\n'
+                    f'If you have further questions, feel free to reply to this email or contact us at:\n'
+                    f'Phone: +81 70 8338 5675\n'
+                    f'Email: info@visamatejapan.com\n\n'
+                    f'Best regards,\n'
+                    f'VisaMate Japan Team'
+                ),
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[message.email],
+                fail_silently=False,
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Failed to send email: {str(e)}'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+        
+        # Save reply to the database
+        from django.utils import timezone
+        message.admin_reply = reply_text
+        message.replied_at = timezone.now()
+        message.is_read = True
+        message.save()
+        
+        serializer = self.get_serializer(message)
+        return Response(serializer.data)
+    
     @action(detail=False, methods=['get'])
     def unread_count(self, request):
         """Get count of unread messages."""
@@ -361,9 +432,16 @@ class ChatbotView(APIView):
         if not groq_key:
             return Response({'error': 'Chatbot not configured'}, status=status.HTTP_503_SERVICE_UNAVAILABLE)
 
+        system_prompt = SYSTEM_PROMPT
+        user_info = request.data.get('user_info')
+        if user_info and isinstance(user_info, dict):
+            name = user_info.get('name', '')
+            email = user_info.get('email', '')
+            system_prompt += f"\n\nIMPORTANT: The user is already logged in. Their details are:\n- Name: {name}\n- Email: {email}\nDo NOT ask for their name or email. Use these details directly when booking appointments or submitting enquiries. Only ask for missing fields like phone number, service type, or message content."
+
         payload = {
             'model': 'llama-3.1-8b-instant',
-            'messages': [{'role': 'system', 'content': SYSTEM_PROMPT}] + messages,
+            'messages': [{'role': 'system', 'content': system_prompt}] + messages,
             'temperature': 0.7,
             'max_tokens': 512,
         }

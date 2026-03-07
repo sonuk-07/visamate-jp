@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, MapPin, Phone, Mail, Clock } from 'lucide-react';
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useLanguage } from '../LanguageContext';
 import { toast } from "sonner";
 import { contactApi } from '@/api/djangoClient';
+import { useAuth } from '@/lib/AuthContext';
 
 export default function ContactSection() {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -20,9 +22,19 @@ export default function ContactSection() {
     message: ''
   });
 
+  useEffect(() => {
+    if (user) {
+      setFormData(prev => ({
+        ...prev,
+        name: [user.first_name, user.last_name].filter(Boolean).join(' ') || prev.name,
+        email: user.email || prev.email,
+      }));
+    }
+  }, [user]);
+
   const destinations = language === 'en' 
-    ? ['United States', 'United Kingdom', 'Canada', 'Australia', 'Germany', 'Japan', 'Other']
-    : ['アメリカ', 'イギリス', 'カナダ', 'オーストラリア', 'ドイツ', '日本', 'その他'];
+    ? ['Japan', 'Australia']
+    : ['オーストラリア', '日本'];
 
   const handleSubmit = async (e) => {
     e.preventDefault();

@@ -138,6 +138,9 @@ export const authApi = {
    * @returns {Promise} Response with updated profile
    */
   updateProfile: (data) => api.patch('profile/', data),
+
+  /** Change authenticated user's password */
+  changePassword: (data) => api.post('change-password/', data),
   
   /**
    * Refresh expired access token.
@@ -306,6 +309,9 @@ export const adminApi = {
   
   /** Mark message as read */
   markMessageRead: (id) => api.post(`contact-messages/${id}/mark_read/`),
+  
+  /** Reply to a contact message (sends email to sender) */
+  replyToMessage: (id, reply) => api.post(`contact-messages/${id}/reply/`, { reply }),
   
   /** Get unread message count */
   getUnreadCount: () => api.get('contact-messages/unread_count/'),

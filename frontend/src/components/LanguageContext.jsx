@@ -13,73 +13,78 @@ export const translations = {
       getStarted: "Get Started"
     },
     hero: {
-      tagline: "Your Journey Begins Here",
-      taglineHighlight: "Bright Future Inspiration",
-      title: "Transform Your Future With",
-      titleHighlight: "VisaMate",
-      subtitle: "Empowering individuals through expert guidance on education and migration. Whether seeking quality education abroad or navigating complex visa processes, we support you every step of the way.",
+      tagline: "Your Gateway to Japan & Australia",
+      taglineHighlight: "VisaMate Japan",
+      title: "Your Dream Journey to",
+      titleHighlight: "Japan & Australia",
+      subtitle: "Helping Nepali students and professionals reach Japan, and Japanese individuals migrate to Australia. Expert guidance on education, visa processing, and settlement — every step of the way.",
       cta: "GET STARTED TODAY",
-      secondaryCta: "Explore Programs"
+      ctaLoggedIn: "Book Appointment",
+      secondaryCta: "Explore Programs",
+      welcomeBack: "Welcome back",
+      welcomeSubtitle: "Continue your journey — book an appointment or check your dashboard.",
+      stats: [
+        { value: "15+", label: "Years Experience" },
+        { value: "3,000+", label: "Students Placed" },
+        { value: "98%", label: "Success Rate" }
+      ]
     },
     services: {
       title: "Our Services",
-      subtitle: "Comprehensive support for your international education and migration journey",
+      subtitle: "Comprehensive support for your journey to Japan or Australia",
+      learnMore: "Learn More",
       items: [
         {
           title: "Study Abroad Guidance",
-          description: "Expert help to find the best courses and universities matching your goals and academic profile."
+          description: "Expert help to find the best courses and universities in Japan and Australia matching your goals."
         },
         {
           title: "Visa Application Support",
-          description: "Step-by-step, reliable assistance through the complex visa application process."
+          description: "Step-by-step assistance through Japan Student Visa, Work Visa, and Australia Student/Migration Visa processes."
         },
         {
           title: "Migration Pathways",
-          description: "Tailored migration solutions for your career and life goals in your dream destination."
+          description: "Tailored migration solutions for your career and life goals in Japan or Australia."
         },
         {
           title: "Settlement & Pre-Departure",
-          description: "Essential tips and support for accommodation, jobs, and essentials to succeed from day one."
+          description: "Essential tips and support for accommodation, cultural adjustment, and settling in Japan or Australia."
         }
       ]
     },
     destinations: {
-      title: "Popular Destinations",
-      subtitle: "Discover opportunities in the world's leading education hubs",
+      title: "Our Destinations",
+      subtitle: "We specialize in Japan and Australia — two incredible destinations for education and career growth",
       countries: [
-        { name: "United States", universities: "4,000+ Universities" },
-        { name: "United Kingdom", universities: "160+ Universities" },
-        { name: "Canada", universities: "100+ Universities" },
-        { name: "Australia", universities: "40+ Universities" },
-        { name: "Germany", universities: "400+ Universities" },
-        { name: "Japan", universities: "780+ Universities" }
+        { name: "Japan", universities: "780+ Universities", description: "Study, work, and build your future in the Land of the Rising Sun" },
+        { name: "Australia", universities: "40+ Universities", description: "World-class education and migration opportunities Down Under" }
       ],
       explore: "Explore"
     },
     testimonials: {
       title: "Success Stories",
-      subtitle: "Hear from students who achieved their dreams",
+      subtitle: "Hear from people who achieved their dreams with VisaMate",
       items: [
         {
+          name: "Ramesh Adhikari",
+          school: "University of Tokyo, Japan",
+          quote: "VisaMate guided me from Nepal to Japan seamlessly. Their expertise with the Japanese student visa process was invaluable. I'm now studying engineering in Tokyo!"
+        },
+        {
+          name: "Sita Sharma",
+          school: "Osaka University, Japan",
+          quote: "I was nervous about moving to Japan, but the team helped me with everything — from university selection to finding accommodation. Highly recommend!"
+        },
+        {
           name: "Yuki Tanaka",
-          school: "Harvard University",
-          quote: "The team guided me through every step. I couldn't have done it without their expertise and dedication."
-        },
-        {
-          name: "Kenji Yamamoto",
-          school: "University of Oxford",
-          quote: "Professional, caring, and incredibly knowledgeable. They made my dream of studying in the UK a reality."
-        },
-        {
-          name: "Sakura Ito",
-          school: "University of Toronto",
-          quote: "From application to arrival, they were with me the whole way. Highly recommend their services!"
+          school: "University of Sydney, Australia",
+          quote: "As a Japanese student, I wanted to study in Australia. VisaMate made the entire process smooth and stress-free. Now I'm living my dream in Sydney!"
         }
       ]
     },
     contact: {
       title: "Start Your Journey",
-      subtitle: "Book a free consultation and take the first step toward your international education",
+      subtitle: "Book a free consultation and take the first step toward Japan or Australia",
       form: {
         name: "Full Name",
         email: "Email Address",
@@ -91,7 +96,7 @@ export const translations = {
       }
     },
     footer: {
-      tagline: "Empowering students to achieve their global education dreams since 2010.",
+      tagline: "Connecting Nepal to Japan and Japan to Australia — your trusted partner in education and migration.",
       quickLinks: "Quick Links",
       contactUs: "Contact Us",
       followUs: "Follow Us",
@@ -105,7 +110,7 @@ export const translations = {
       personalizedAssessment: "Personalized Assessment",
       personalizedAssessmentDesc: "We evaluate your academic background, career goals, budget, and preferences to recommend universities that truly fit your profile.",
       globalNetwork: "Global Network",
-      globalNetworkDesc: "Access to 5,000+ universities across the USA, UK, Canada, Australia, Germany, Japan, and more.",
+      globalNetworkDesc: "Access to top universities across Japan and Australia, with strong partnerships and direct connections.",
       expertCounseling: "Expert Counseling",
       expertCounselingDesc: "One-on-one sessions with our experienced counselors who have helped thousands of students find their ideal universities.",
       ourProcess: "Our Process",
@@ -156,12 +161,8 @@ export const translations = {
       applicationReviewDesc: "Expert review of your entire visa application to maximize approval chances.",
       countriesWeSupport: "Countries We Support",
       countries: [
-        "USA (F-1, J-1)",
-        "UK (Tier 4)",
-        "Canada (Study Permit)",
-        "Australia (Student Visa)",
-        "Germany (Student Visa)",
-        "Japan (Student Visa)"
+        "Japan (Student Visa, Work Visa, Specified Skilled Worker)",
+        "Australia (Student Visa, Skilled Migration, Working Holiday)"
       ],
       successRate: "98% Success Rate",
       successRateDesc: "Over 3,000 successful visa applications processed",
@@ -207,90 +208,96 @@ export const translations = {
     nav: {
       home: "ホーム",
       services: "サービス",
-      destinations: "留学先",
+      destinations: "渡航先",
       about: "会社概要",
       contact: "お問い合わせ",
       getStarted: "相談予約"
     },
     hero: {
-      tagline: "あなたの旅はここから始まる",
-      title: "グローバル教育で",
-      titleHighlight: "未来を変える",
-      subtitle: "留学のエキスパートがあなたの夢を全力でサポート。世界トップクラスの大学への架け橋となります。",
+      tagline: "オーストラリアへの第一歩",
+      taglineHighlight: "VisaMate Japan",
+      title: "オーストラリアで",
+      titleHighlight: "夢を叶える",
+      subtitle: "留学・移住・ワーキングホリデーなど、オーストラリアへの渡航を全力でサポート。ビザ申請から現地での生活準備まで、専門スタッフがお手伝いします。",
       cta: "無料相談を予約",
-      secondaryCta: "プログラムを見る"
+      ctaLoggedIn: "予約する",
+      secondaryCta: "プログラムを見る",
+      welcomeBack: "おかえりなさい",
+      welcomeSubtitle: "予約やダッシュボードの確認など、次のステップへ進みましょう。",
+      stats: [
+        { value: "15+", label: "年の実績" },
+        { value: "3,000+", label: "渡航サポート実績" },
+        { value: "98%", label: "ビザ取得率" }
+      ]
     },
     services: {
       title: "サービス内容",
-      subtitle: "留学のすべてのステップを包括的にサポートします",
+      subtitle: "オーストラリアへの留学・移住を包括的にサポートします",
+      learnMore: "詳しく見る",
       items: [
         {
-          title: "大学選定",
-          description: "学業成績、キャリア目標、ご希望に基づいたパーソナライズされた提案。"
+          title: "大学・学校選定",
+          description: "オーストラリアの大学・専門学校から、あなたに最適なプログラムをご提案します。"
         },
         {
           title: "出願サポート",
-          description: "出願書類、エッセイ、必要書類の準備まで一貫してサポート。"
+          description: "出願書類からエッセイまで、オーストラリアの教育機関への出願を一貫サポート。"
         },
         {
           title: "ビザ申請支援",
-          description: "高い成功率を誇るビザ申請プロセスの専門サポート。"
+          description: "学生ビザ、技術移民ビザ、ワーキングホリデービザなど、高い成功率のビザサポート。"
         },
         {
           title: "渡航前準備",
-          description: "住居、保険、文化適応など、新生活の準備をお手伝い。"
+          description: "住居、保険、文化適応など、オーストラリアでの新生活の準備をお手伝い。"
         }
       ]
     },
     destinations: {
-      title: "人気の留学先",
-      subtitle: "世界をリードする教育拠点で機会を見つけよう",
+      title: "渡航先",
+      subtitle: "教育・キャリアに最適な渡航先をご紹介します",
       countries: [
-        { name: "アメリカ", universities: "4,000以上の大学" },
-        { name: "イギリス", universities: "160以上の大学" },
-        { name: "カナダ", universities: "100以上の大学" },
-        { name: "オーストラリア", universities: "40以上の大学" },
-        { name: "ドイツ", universities: "400以上の大学" },
-        { name: "日本", universities: "780以上の大学" }
+        { name: "オーストラリア", universities: "40以上の大学", description: "世界水準の教育と移住の機会が広がる国" },
+        { name: "日本", universities: "780以上の大学", description: "ネパールの方向け — 日本での留学・就職をサポート" }
       ],
       explore: "詳しく見る"
     },
     testimonials: {
-      title: "合格実績",
-      subtitle: "夢を実現した先輩たちの声",
+      title: "渡航者の声",
+      subtitle: "VisaMateを通じて夢を実現した方々の体験談",
       items: [
         {
           name: "田中 優希",
-          school: "ハーバード大学",
-          quote: "すべてのステップで丁寧にサポートしていただきました。専門知識と献身的なサポートなしでは実現できませんでした。"
+          school: "シドニー大学（オーストラリア）",
+          quote: "オーストラリアへの留学をずっと夢見ていました。VisaMateのおかげでビザ取得から入学手続きまでスムーズに進みました。"
         },
         {
           name: "山本 健二",
-          school: "オックスフォード大学",
-          quote: "プロフェッショナルで、思いやりがあり、知識も豊富。イギリス留学の夢を実現してくれました。"
+          school: "メルボルン大学（オーストラリア）",
+          quote: "ビザ申請が不安でしたが、専門スタッフが丁寧にサポートしてくれました。今はメルボルンで充実した毎日を送っています。"
         },
         {
           name: "伊藤 さくら",
-          school: "トロント大学",
-          quote: "出願から渡航まで、ずっと寄り添ってくれました。心からおすすめします！"
+          school: "シドニー工科大学（オーストラリア）",
+          quote: "出願から渡航準備まで、すべてのステップで寄り添ってくれました。オーストラリアでの生活を心から楽しんでいます！"
         }
       ]
     },
     contact: {
-      title: "留学相談を始める",
-      subtitle: "無料相談を予約して、国際教育への第一歩を踏み出しましょう",
+      title: "オーストラリア留学相談",
+      subtitle: "無料相談を予約して、オーストラリアへの第一歩を踏み出しましょう",
       form: {
         name: "お名前",
         email: "メールアドレス",
         phone: "電話番号",
-        destination: "希望留学先",
+        destination: "希望渡航先",
         message: "ご相談内容・目標をお聞かせください",
         submit: "送信する",
-        selectDestination: "留学先を選択"
+        selectDestination: "渡航先を選択"
       }
     },
     footer: {
-      tagline: "2010年より、学生の皆様のグローバル教育の夢を支援しています。",
+      tagline: "ネパールから日本へ、日本からオーストラリアへ — 教育と移住のパートナー。",
       quickLinks: "クイックリンク",
       contactUs: "お問い合わせ",
       followUs: "SNS",
@@ -304,7 +311,7 @@ export const translations = {
       personalizedAssessment: "パーソナライズ評価",
       personalizedAssessmentDesc: "学歴、キャリア目標、予算、希望をもとに、あなたにぴったりの大学を推薦します。",
       globalNetwork: "グローバルネットワーク",
-      globalNetworkDesc: "アメリカ、イギリス、カナダ、オーストラリア、ドイツ、日本など、5,000以上の大学にアクセス可能。",
+      globalNetworkDesc: "オーストラリアと日本のトップ大学と強力なパートナーシップを持ち、直接つながります。",
       expertCounseling: "専門カウンセリング",
       expertCounselingDesc: "何千人もの学生の理想的な大学探しをサポートしてきた経験豊富なカウンセラーとの個別相談。",
       ourProcess: "サービスの流れ",
@@ -355,12 +362,8 @@ export const translations = {
       applicationReviewDesc: "ビザ申請全体を専門家がレビューし、承認率を最大化。",
       countriesWeSupport: "対応国",
       countries: [
-        "アメリカ（F-1、J-1）",
-        "イギリス（Tier 4）",
-        "カナダ（学生ビザ）",
-        "オーストラリア（学生ビザ）",
-        "ドイツ（学生ビザ）",
-        "日本（学生ビザ）"
+        "オーストラリア（学生ビザ、技術移民ビザ、ワーキングホリデー）",
+        "日本（学生ビザ、就労ビザ、特定技能）"
       ],
       successRate: "98%の成功率",
       successRateDesc: "3,000件以上のビザ申請成功実績",

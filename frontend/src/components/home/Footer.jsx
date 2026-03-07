@@ -8,7 +8,7 @@ export default function Footer() {
 
   const quickLinks = language === 'en' 
     ? ['Home', 'Services', 'Destinations', 'About Us', 'Contact']
-    : ['ホーム', 'サービス', '留学先', '会社概要', 'お問い合わせ'];
+    : ['ホーム', 'サービス', '渡航先', '会社概要', 'お問い合わせ'];
 
   return (
     <footer className="bg-[#1e3a5f] text-white">

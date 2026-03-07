@@ -119,6 +119,16 @@ class ContactMessage(models.Model):
         default=False,
         help_text="Whether the message has been read by admin"
     )
+    admin_reply = models.TextField(
+        blank=True,
+        default='',
+        help_text="Admin's reply to this inquiry"
+    )
+    replied_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        help_text="When the reply was sent"
+    )
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

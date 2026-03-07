@@ -57,10 +57,10 @@ import { createPageUrl } from '../utils';
  * @constant {Array<Object>}
  */
 const services = [
-  { value: 'visa_guidance', label: 'Visa Guidance', icon: '🛂', description: 'Get expert guidance on visa requirements and application process' },
-  { value: 'university_selection', label: 'University Selection', icon: '🎓', description: 'Find the perfect university for your academic goals' },
+  { value: 'visa_guidance', label: 'Visa Guidance', icon: '🛂', description: 'Expert guidance on Japan & Australia visa requirements and application' },
+  { value: 'university_selection', label: 'University Selection', icon: '🎓', description: 'Find the perfect university in Japan or Australia' },
   { value: 'application_support', label: 'Application Support', icon: '📝', description: 'Comprehensive support for your applications' },
-  { value: 'pre_departure', label: 'Pre-Departure Prep', icon: '✈️', description: 'Everything you need before leaving for Japan' },
+  { value: 'pre_departure', label: 'Pre-Departure Prep', icon: '✈️', description: 'Everything you need before leaving for Japan or Australia' },
   { value: 'general_consultation', label: 'General Consultation', icon: '💬', description: 'General questions and guidance' },
 ];
 

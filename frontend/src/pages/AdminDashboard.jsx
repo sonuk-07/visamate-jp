@@ -35,12 +35,15 @@ import {
   FileText,
   Check,
   X,
-  Loader2
+  Loader2,
+  Reply,
+  Send
 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -122,6 +125,11 @@ export default function AdminDashboard() {
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showSlotDialog, setShowSlotDialog] = useState(false);
   const [deleteType, setDeleteType] = useState('');
+  
+  // Reply states
+  const [replyingTo, setReplyingTo] = useState(null);
+  const [replyText, setReplyText] = useState('');
+  const [sendingReply, setSendingReply] = useState(false);
   
   // New slot form
   const [newSlot, setNewSlot] = useState({
@@ -232,6 +240,22 @@ export default function AdminDashboard() {
       loadMessages();
     } catch (error) {
       toast.error('Failed to mark as read');
+    }
+  };
+
+  const handleReplyToMessage = async (id) => {
+    if (!replyText.trim()) return;
+    setSendingReply(true);
+    try {
+      await adminApi.replyToMessage(id, replyText.trim());
+      toast.success('Reply sent successfully');
+      setReplyingTo(null);
+      setReplyText('');
+      loadMessages();
+    } catch (error) {
+      toast.error('Failed to send reply');
+    } finally {
+      setSendingReply(false);
     }
   };
 
@@ -612,8 +636,63 @@ export default function AdminDashboard() {
                           <p className="text-xs text-gray-400 mt-2">
                             {format(new Date(msg.created_at), 'MMMM d, yyyy h:mm a')}
                           </p>
+
+                          {/* Show existing reply */}
+                          {msg.admin_reply && (
+                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Badge className="bg-green-500 text-xs">Replied ✓</Badge>
+                                {msg.replied_at && (
+                                  <span className="text-xs text-gray-400">
+                                    {format(new Date(msg.replied_at), 'MMM d, yyyy h:mm a')}
+                                  </span>
+                                )}
+                              </div>
+                              <p className="text-sm text-gray-700">{msg.admin_reply}</p>
+                            </div>
+                          )}
+
+                          {/* Inline reply form */}
+                          {replyingTo === msg.id && (
+                            <div className="mt-3 space-y-2">
+                              <Textarea
+                                placeholder="Type your reply..."
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                rows={3}
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleReplyToMessage(msg.id)}
+                                  disabled={sendingReply || !replyText.trim()}
+                                >
+                                  <Send className="w-4 h-4 mr-1" />
+                                  {sendingReply ? 'Sending...' : 'Send Reply'}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => { setReplyingTo(null); setReplyText(''); }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          )}
                         </div>
                         <div className="flex gap-2 ml-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setReplyingTo(replyingTo === msg.id ? null : msg.id);
+                              setReplyText(msg.admin_reply || '');
+                            }}
+                            title="Reply"
+                          >
+                            <Reply className="w-4 h-4" />
+                          </Button>
                           {!msg.is_read && (
                             <Button
                               size="sm"

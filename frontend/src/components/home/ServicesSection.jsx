@@ -53,7 +53,7 @@ export default function ServicesSection() {
                       {service.description}
                     </p>
                     <div className="flex items-center text-[#1e3a5f] group-hover:text-white transition-colors">
-                      <span className="text-sm font-medium">Learn More</span>
+                      <span className="text-sm font-medium">{t.services.learnMore}</span>
                       <ArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </div>

@@ -21,7 +21,7 @@ export default function Login() {
     try {
       const userData = await login(username, password);
       toast.success('Logged in successfully');
-      navigate(userData.is_staff ? '/admin' : '/');
+      navigate(userData.is_staff ? '/admin' : '/Dashboard');
     } catch (error) {
       toast.error('Invalid credentials');
     } finally {

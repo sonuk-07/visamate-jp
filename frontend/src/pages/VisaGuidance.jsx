@@ -66,7 +66,7 @@ export default function VisaGuidance() {
           <div className="bg-white rounded-3xl shadow-xl p-8 md:p-12 mb-8">
             <h2 className="text-2xl font-bold text-[#1e3a5f] mb-6">{t.visaGuidance.countriesWeSupport}</h2>
             
-            <div className="grid md:grid-cols-3 gap-4">
+            <div className="grid md:grid-cols-2 gap-4 max-w-2xl mx-auto">
               {t.visaGuidance.countries.map((country, index) => (
                 <div key={index} className="bg-[#faf8f5] rounded-lg p-4 text-center">
                   <span className="text-[#1e3a5f] font-medium">{country}</span>
