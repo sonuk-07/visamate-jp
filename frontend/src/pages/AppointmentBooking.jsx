@@ -77,8 +77,16 @@ const services = [
  * <Route path="/book-appointment" element={<AppointmentBooking />} />
  */
 export default function AppointmentBooking() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    if (!authLoading && !user) {
+      toast.info('Please login to book an appointment');
+      navigate('/login?redirect=/AppointmentBooking');
+    }
+  }, [user, authLoading, navigate]);
   
   /** @type {[number, Function]} Current step in the booking wizard (1-4) */
   const [step, setStep] = useState(1);
@@ -221,10 +229,6 @@ export default function AppointmentBooking() {
         service_type: selectedService,
         appointment_date: `${selectedSlot.date}T${selectedSlot.start_time}`,
       };
-      
-      if (user) {
-        data.user = user.id;
-      }
 
       await appointmentsApi.create(data);
       toast.success('Appointment booked successfully!');
@@ -402,6 +406,14 @@ export default function AppointmentBooking() {
       </div>
     );
   };
+
+  if (authLoading || !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#1e3a5f]/20 border-t-[#1e3a5f] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea] pt-24 pb-12">

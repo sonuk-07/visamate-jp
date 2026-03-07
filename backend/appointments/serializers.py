@@ -119,7 +119,7 @@ class AppointmentSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'slot', 'slot_details', 'full_name', 'email', 'phone',
                   'appointment_date', 'service_type', 'message', 'status', 'status_display',
                   'is_confirmed', 'created_at', 'updated_at']
-        read_only_fields = ['status', 'is_confirmed', 'created_at', 'updated_at']
+        read_only_fields = ['user', 'status', 'is_confirmed', 'created_at', 'updated_at']
 
     def validate(self, data):
         """

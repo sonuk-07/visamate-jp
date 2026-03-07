@@ -192,10 +192,8 @@ class AppointmentViewSet(viewsets.ModelViewSet):
         Configure permissions based on action.
         
         Returns:
-            list: AllowAny for create, IsAuthenticated for other actions.
+            list: IsAuthenticated for all actions.
         """
-        if self.action == 'create':
-            return [permissions.AllowAny()]
         return [permissions.IsAuthenticated()]
 
     def get_queryset(self):
@@ -235,11 +233,12 @@ class AppointmentViewSet(viewsets.ModelViewSet):
             # Set appointment_date from slot
             appointment_date = datetime.combine(slot.date, slot.start_time)
             appointment = serializer.save(
+                user=self.request.user,
                 appointment_date=timezone.make_aware(appointment_date),
                 service_type=slot.service_type
             )
         else:
-            appointment = serializer.save()
+            appointment = serializer.save(user=self.request.user)
         
         # Send confirmation emails
         send_appointment_confirmation(appointment)

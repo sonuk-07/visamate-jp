@@ -3,7 +3,7 @@ import { useAuth } from '@/lib/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Lock, ArrowLeft, ArrowRight, Eye, EyeOff } from 'lucide-react';
 
@@ -14,6 +14,8 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectTo = searchParams.get('redirect');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -21,7 +23,7 @@ export default function Login() {
     try {
       const userData = await login(username, password);
       toast.success('Logged in successfully');
-      navigate(userData.is_staff ? '/admin' : '/Dashboard');
+      navigate(redirectTo || (userData.is_staff ? '/admin' : '/Dashboard'));
     } catch (error) {
       toast.error('Invalid credentials');
     } finally {
