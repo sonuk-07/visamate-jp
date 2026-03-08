@@ -87,6 +87,7 @@ export default function NewApplication() {
     message: '',
   });
 
+  // Store arrays of files per document type
   const [documents, setDocuments] = useState({});
 
   const handleChange = (field, value) => {
@@ -105,7 +106,10 @@ export default function NewApplication() {
         toast.error('File size must be under 10MB');
         return;
       }
-      setDocuments(prev => ({ ...prev, [docKey]: file }));
+      setDocuments(prev => ({
+        ...prev,
+        [docKey]: prev[docKey] ? [...prev[docKey], file] : [file],
+      }));
     }
   };
 
@@ -113,6 +117,18 @@ export default function NewApplication() {
     setDocuments(prev => {
       const updated = { ...prev };
       delete updated[docKey];
+      return updated;
+    });
+  };
+
+  // Remove a single file from a document type
+  const removeSingleFile = (docKey, idx) => {
+    setDocuments(prev => {
+      const updated = { ...prev };
+      if (Array.isArray(updated[docKey])) {
+        updated[docKey] = updated[docKey].filter((_, i) => i !== idx);
+        if (updated[docKey].length === 0) delete updated[docKey];
+      }
       return updated;
     });
   };
@@ -151,28 +167,38 @@ export default function NewApplication() {
         delete applicationData.preferred_start_date;
       }
       const response = await applicantsApi.create(applicationData);
+      console.log('Application create response:', response.data);
       const applicantId = response.data.id;
 
       // Upload documents
+      // Upload all files for each document type
       const docEntries = Object.entries(documents);
-      for (const [docKey, file] of docEntries) {
+      for (const [docKey, files] of docEntries) {
         const docLabel = REQUIRED_DOCUMENTS.find(d => d.key === docKey)?.label || docKey;
-        const formData = new FormData();
-        formData.append('applicant', applicantId);
-        formData.append('title', docLabel);
-        formData.append('file', file);
-        await documentsApi.upload(formData);
+        if (Array.isArray(files)) {
+          for (const file of files) {
+            const formData = new FormData();
+            formData.append('applicant', applicantId);
+            formData.append('title', docLabel);
+            formData.append('file', file);
+            await documentsApi.upload(formData);
+          }
+        }
       }
 
       toast.success('Application submitted successfully!');
+      alert('Application submitted successfully!');
       navigate('/Dashboard');
     } catch (error) {
+      console.error('Application submission error:', error);
       const msg = error.response?.data;
       if (msg && typeof msg === 'object') {
         const firstError = Object.values(msg).flat()[0];
         toast.error(firstError || 'Failed to submit application');
+        alert(firstError || 'Failed to submit application');
       } else {
         toast.error('Failed to submit application');
+        alert('Failed to submit application');
       }
     } finally {
       setSubmitting(false);
@@ -375,13 +401,13 @@ export default function NewApplication() {
 
                   <div className="space-y-3">
                     {REQUIRED_DOCUMENTS.map(doc => {
-                      const file = documents[doc.key];
+                      const files = documents[doc.key] || [];
                       return (
-                        <div key={doc.key} className={`border rounded-xl p-4 transition-all ${file ? 'border-green-300 bg-green-50/50' : 'border-gray-200 bg-[#faf8f5]'}`}>
+                        <div key={doc.key} className={`border rounded-xl p-4 transition-all ${files.length > 0 ? 'border-green-300 bg-green-50/50' : 'border-gray-200 bg-[#faf8f5]'}`}>
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1">
                               <div className="flex items-center gap-2">
-                                {file ? (
+                                {files.length > 0 ? (
                                   <Check className="w-4 h-4 text-green-600 shrink-0" />
                                 ) : (
                                   <FileText className="w-4 h-4 text-gray-400 shrink-0" />
@@ -389,16 +415,20 @@ export default function NewApplication() {
                                 <span className="font-medium text-sm text-[#1e3a5f]">{doc.label}</span>
                               </div>
                               <p className="text-xs text-gray-500 mt-0.5 ml-6">{doc.description}</p>
-                              {file && (
-                                <p className="text-xs text-green-700 mt-1 ml-6">{file.name} ({(file.size / 1024).toFixed(0)} KB)</p>
+                              {files.length > 0 && (
+                                <ul className="ml-6 mt-1 space-y-1">
+                                  {files.map((file, idx) => (
+                                    <li key={idx} className="flex items-center gap-2 text-xs text-green-700">
+                                      {file.name} ({(file.size / 1024).toFixed(0)} KB)
+                                      <button type="button" onClick={() => removeSingleFile(doc.key, idx)} className="text-red-400 hover:text-red-600 transition-colors">
+                                        <X className="w-3 h-3" />
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
                               )}
                             </div>
-                            <div className="flex items-center gap-2 shrink-0">
-                              {file && (
-                                <button type="button" onClick={() => removeFile(doc.key)} className="text-red-400 hover:text-red-600 transition-colors">
-                                  <X className="w-4 h-4" />
-                                </button>
-                              )}
+                            <div className="flex flex-col items-end gap-2 shrink-0">
                               <input
                                 ref={el => fileInputRefs.current[doc.key] = el}
                                 type="file"
@@ -413,8 +443,19 @@ export default function NewApplication() {
                                 onClick={() => fileInputRefs.current[doc.key]?.click()}
                                 className="text-xs h-8 rounded-lg"
                               >
-                                {file ? 'Replace' : 'Upload'}
+                                Add File
                               </Button>
+                              {files.length > 0 && (
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeFile(doc.key)}
+                                  className="text-xs h-8 rounded-lg text-red-400 hover:text-red-600"
+                                >
+                                  Remove All
+                                </Button>
+                              )}
                             </div>
                           </div>
                         </div>

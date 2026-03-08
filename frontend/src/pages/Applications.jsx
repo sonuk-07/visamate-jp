@@ -1,60 +1,91 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useCallback } from "react";
+import { motion } from "framer-motion";
+import { useNavigate } from "react-router-dom";
 import {
-  Calendar, User, FileText, Clock, CheckCircle, XCircle, Plus,
-  MapPin, GraduationCap, Globe, MessageSquare, Loader2
-} from 'lucide-react';
+  Calendar,
+  User,
+  FileText,
+  Clock,
+  CheckCircle,
+  XCircle,
+  Plus,
+  MapPin,
+  GraduationCap,
+  Globe,
+  MessageSquare,
+  Loader2,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useAuth } from '@/lib/AuthContext';
-import { applicantsApi } from '@/api/djangoClient';
-import { useWebSocket } from '@/lib/WebSocketContext';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
+import { useAuth } from "@/lib/AuthContext";
+import { applicantsApi } from "@/api/djangoClient";
+import { useWebSocket } from "@/lib/WebSocketContext";
+import { format } from "date-fns";
+import { toast } from "sonner";
 
 const STATUS_STEPS = [
-  { key: 'applied', label: 'Applied', icon: FileText },
-  { key: 'reviewing', label: 'Under Review', icon: Clock },
-  { key: 'interview', label: 'Interview', icon: User },
-  { key: 'visa_processing', label: 'Visa Processing', icon: Globe },
-  { key: 'approved', label: 'Approved', icon: CheckCircle },
+  { key: "applied", label: "Applied", icon: FileText },
+  { key: "reviewing", label: "Under Review", icon: Clock },
+  { key: "interview", label: "Interview", icon: User },
+  { key: "visa_processing", label: "Visa Processing", icon: Globe },
+  { key: "approved", label: "Approved", icon: CheckCircle },
 ];
 
-const COUNTRY_LABELS = { japan: '🇯🇵 Japan', australia: '🇦🇺 Australia' };
+const COUNTRY_LABELS = { japan: "🇯🇵 Japan", australia: "🇦🇺 Australia" };
 const VISA_LABELS = {
-  student_visa: 'Student Visa',
-  work_visa: 'Work Visa',
-  skilled_worker: 'Specified Skilled Worker',
-  skilled_migration: 'Skilled Migration',
-  working_holiday: 'Working Holiday',
+  student_visa: "Student Visa",
+  work_visa: "Work Visa",
+  skilled_worker: "Specified Skilled Worker",
+  skilled_migration: "Skilled Migration",
+  working_holiday: "Working Holiday",
 };
 
 const STATUS_CONFIG = {
-  applied: { label: 'Applied', className: 'bg-blue-100 text-blue-800' },
-  reviewing: { label: 'Under Review', className: 'bg-yellow-100 text-yellow-800' },
-  interview: { label: 'Interview Scheduled', className: 'bg-purple-100 text-purple-800' },
-  visa_processing: { label: 'Visa Processing', className: 'bg-orange-100 text-orange-800' },
-  approved: { label: 'Approved', className: 'bg-green-100 text-green-800' },
-  rejected: { label: 'Rejected', className: 'bg-red-100 text-red-800' },
+  applied: { label: "Applied", className: "bg-blue-100 text-blue-800" },
+  reviewing: {
+    label: "Under Review",
+    className: "bg-yellow-100 text-yellow-800",
+  },
+  interview: {
+    label: "Interview Scheduled",
+    className: "bg-purple-100 text-purple-800",
+  },
+  visa_processing: {
+    label: "Visa Processing",
+    className: "bg-orange-100 text-orange-800",
+  },
+  approved: { label: "Approved", className: "bg-green-100 text-green-800" },
+  rejected: { label: "Rejected", className: "bg-red-100 text-red-800" },
 };
 
 function ApplicationCard({ application }) {
-  const statusOrder = ['applied', 'reviewing', 'interview', 'visa_processing', 'approved'];
+  const statusOrder = [
+    "applied",
+    "reviewing",
+    "interview",
+    "visa_processing",
+    "approved",
+  ];
   const currentIndex = statusOrder.indexOf(application.status);
-  const isRejected = application.status === 'rejected';
-  const config = STATUS_CONFIG[application.status] || { label: application.status, className: 'bg-gray-100 text-gray-800' };
+  const isRejected = application.status === "rejected";
+  const config = STATUS_CONFIG[application.status] || {
+    label: application.status,
+    className: "bg-gray-100 text-gray-800",
+  };
 
   return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
-      <Card className={`rounded-3xl shadow-xl shadow-[#1e3a5f]/10 border-0 ${isRejected ? '!border !border-red-200' : ''}`}>
+      <Card
+        className={`rounded-3xl shadow-xl shadow-[#1e3a5f]/10 border-0 ${isRejected ? "!border !border-red-200" : ""}`}
+      >
         <CardContent className="p-6">
           <div className="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-6">
             <div>
               <div className="flex items-center gap-3 mb-1">
                 <h3 className="font-semibold text-lg text-[#1e3a5f]">
-                  {COUNTRY_LABELS[application.destination_country] || application.destination_country}
+                  {COUNTRY_LABELS[application.destination_country] ||
+                    application.destination_country}
                 </h3>
                 <Badge className={config.className}>{config.label}</Badge>
               </div>
@@ -65,12 +96,13 @@ function ApplicationCard({ application }) {
                 </span>
                 <span className="flex items-center gap-1">
                   <Calendar className="w-3.5 h-3.5" />
-                  Applied {format(new Date(application.created_at), 'PP')}
+                  Applied {format(new Date(application.created_at), "PP")}
                 </span>
                 {application.preferred_start_date && (
                   <span className="flex items-center gap-1">
                     <MapPin className="w-3.5 h-3.5" />
-                    Start: {format(new Date(application.preferred_start_date), 'PP')}
+                    Start:{" "}
+                    {format(new Date(application.preferred_start_date), "PP")}
                   </span>
                 )}
               </div>
@@ -84,7 +116,9 @@ function ApplicationCard({ application }) {
                 Application Rejected
               </div>
               {application.admin_notes && (
-                <p className="text-sm text-red-600 mt-2">{application.admin_notes}</p>
+                <p className="text-sm text-red-600 mt-2">
+                  {application.admin_notes}
+                </p>
               )}
             </div>
           ) : (
@@ -95,24 +129,39 @@ function ApplicationCard({ application }) {
                   const isCompleted = index <= currentIndex;
                   const isCurrent = index === currentIndex;
                   return (
-                    <div key={step.key} className="flex flex-col items-center flex-1 relative">
+                    <div
+                      key={step.key}
+                      className="flex flex-col items-center flex-1 relative"
+                    >
                       {index > 0 && (
-                        <div className={`absolute top-5 right-1/2 w-full h-0.5 -z-0 ${
-                          index <= currentIndex ? 'bg-[#1e3a5f]' : 'bg-gray-200'
-                        }`} />
+                        <div
+                          className={`absolute top-5 right-1/2 w-full h-0.5 -z-0 ${
+                            index <= currentIndex
+                              ? "bg-[#1e3a5f]"
+                              : "bg-gray-200"
+                          }`}
+                        />
                       )}
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all ${
-                        isCurrent
-                          ? 'bg-[#1e3a5f] text-white ring-4 ring-[#1e3a5f]/20'
-                          : isCompleted
-                            ? 'bg-[#1e3a5f] text-white'
-                            : 'bg-gray-100 text-gray-400'
-                      }`}>
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center z-10 transition-all ${
+                          isCurrent
+                            ? "bg-[#1e3a5f] text-white ring-4 ring-[#1e3a5f]/20"
+                            : isCompleted
+                              ? "bg-[#1e3a5f] text-white"
+                              : "bg-gray-100 text-gray-400"
+                        }`}
+                      >
                         <StepIcon className="w-4 h-4" />
                       </div>
-                      <span className={`text-xs mt-2 text-center ${
-                        isCurrent ? 'font-semibold text-[#1e3a5f]' : isCompleted ? 'text-[#1e3a5f]' : 'text-gray-400'
-                      }`}>
+                      <span
+                        className={`text-xs mt-2 text-center ${
+                          isCurrent
+                            ? "font-semibold text-[#1e3a5f]"
+                            : isCompleted
+                              ? "text-[#1e3a5f]"
+                              : "text-gray-400"
+                        }`}
+                      >
                         {step.label}
                       </span>
                     </div>
@@ -125,16 +174,29 @@ function ApplicationCard({ application }) {
                   const isCompleted = index <= currentIndex;
                   const isCurrent = index === currentIndex;
                   return (
-                    <div key={step.key} className={`flex items-center gap-3 p-2 rounded-lg ${isCurrent ? 'bg-[#1e3a5f]/5' : ''}`}>
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
-                        isCompleted ? 'bg-[#1e3a5f] text-white' : 'bg-gray-100 text-gray-400'
-                      }`}>
+                    <div
+                      key={step.key}
+                      className={`flex items-center gap-3 p-2 rounded-lg ${isCurrent ? "bg-[#1e3a5f]/5" : ""}`}
+                    >
+                      <div
+                        className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 ${
+                          isCompleted
+                            ? "bg-[#1e3a5f] text-white"
+                            : "bg-gray-100 text-gray-400"
+                        }`}
+                      >
                         <StepIcon className="w-3.5 h-3.5" />
                       </div>
-                      <span className={`text-sm ${isCurrent ? 'font-semibold text-[#1e3a5f]' : isCompleted ? 'text-[#1e3a5f]' : 'text-gray-400'}`}>
+                      <span
+                        className={`text-sm ${isCurrent ? "font-semibold text-[#1e3a5f]" : isCompleted ? "text-[#1e3a5f]" : "text-gray-400"}`}
+                      >
                         {step.label}
                       </span>
-                      {isCurrent && <Badge className="bg-[#1e3a5f]/10 text-[#1e3a5f] text-xs ml-auto">Current</Badge>}
+                      {isCurrent && (
+                        <Badge className="bg-[#1e3a5f]/10 text-[#1e3a5f] text-xs ml-auto">
+                          Current
+                        </Badge>
+                      )}
                     </div>
                   );
                 })}
@@ -153,7 +215,7 @@ function ApplicationCard({ application }) {
           )}
 
           <p className="text-xs text-gray-400 mt-4">
-            Last updated: {format(new Date(application.updated_at), 'PPP p')}
+            Last updated: {format(new Date(application.updated_at), "PPP p")}
           </p>
         </CardContent>
       </Card>
@@ -170,9 +232,10 @@ export default function Applications() {
   const fetchApplications = useCallback(async () => {
     try {
       const res = await applicantsApi.list();
-      setApplications(res.data || []);
+      const data = res.data;
+      setApplications(Array.isArray(data) ? data : data.results || []);
     } catch {
-      toast.error('Failed to load applications');
+      toast.error("Failed to load applications");
     } finally {
       setLoading(false);
     }
@@ -180,29 +243,33 @@ export default function Applications() {
 
   useEffect(() => {
     if (!user) {
-      navigate('/login');
+      navigate("/login");
       return;
     }
     fetchApplications();
   }, [user, navigate, fetchApplications]);
 
   // Re-fetch when application status changes via WebSocket
-  useWebSocket('application_update', () => {
-    toast.info('Your application status was updated');
+  useWebSocket("application_update", () => {
+    toast.info("Your application status was updated");
     fetchApplications();
   });
 
   if (!user) return null;
 
-  const inProgress = applications.filter(a => !['approved', 'rejected'].includes(a.status));
-  const completed = applications.filter(a => ['approved', 'rejected'].includes(a.status));
+  const inProgress = Array.isArray(applications)
+    ? applications.filter((a) => !["approved", "rejected"].includes(a.status))
+    : [];
+  const completed = Array.isArray(applications)
+    ? applications.filter((a) => ["approved", "rejected"].includes(a.status))
+    : [];
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-[#1e3a5f]">Applications</h1>
         <Button
-          onClick={() => navigate('/NewApplication')}
+          onClick={() => navigate("/NewApplication")}
           className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-lg"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -214,13 +281,17 @@ export default function Applications() {
         <div className="flex justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-[#1e3a5f]" />
         </div>
-      ) : applications.length === 0 ? (
+      ) : !Array.isArray(applications) || applications.length === 0 ? (
         <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 py-16 text-center">
           <FileText className="w-12 h-12 mx-auto text-gray-300 mb-4" />
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">No applications yet</h3>
-          <p className="text-gray-500 mb-6">Start your study abroad journey today</p>
+          <h3 className="text-lg font-semibold text-gray-700 mb-2">
+            No applications yet
+          </h3>
+          <p className="text-gray-500 mb-6">
+            Start your study abroad journey today
+          </p>
           <Button
-            onClick={() => navigate('/NewApplication')}
+            onClick={() => navigate("/NewApplication")}
             className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-lg"
           >
             <Plus className="w-4 h-4 mr-2" />
@@ -235,10 +306,12 @@ export default function Applications() {
               In Progress ({inProgress.length})
             </h2>
             {inProgress.length === 0 ? (
-              <p className="text-sm text-gray-400">No applications in progress</p>
+              <p className="text-sm text-gray-400">
+                No applications in progress
+              </p>
             ) : (
               <div className="space-y-4">
-                {inProgress.map(app => (
+                {inProgress.map((app) => (
                   <ApplicationCard key={app.id} application={app} />
                 ))}
               </div>
@@ -254,7 +327,7 @@ export default function Applications() {
               <p className="text-sm text-gray-400">No completed applications</p>
             ) : (
               <div className="space-y-4">
-                {completed.map(app => (
+                {completed.map((app) => (
                   <ApplicationCard key={app.id} application={app} />
                 ))}
               </div>

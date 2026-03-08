@@ -75,7 +75,7 @@ export default function MyProfile() {
     setDocsLoading(true);
     try {
       const res = await userDocumentsApi.list();
-      setDocuments(res.data);
+      setDocuments(Array.isArray(res.data) ? res.data : []);
     } catch {
       toast.error('Failed to load documents');
     } finally {

@@ -19,7 +19,7 @@ export default function Messages() {
   const fetchMessages = useCallback(async () => {
     try {
       const res = await myMessagesApi.list();
-      setMessages(res.data || []);
+      setMessages(Array.isArray(res.data) ? res.data : []);
     } catch {
       toast.error('Failed to load messages');
     } finally {
@@ -51,7 +51,7 @@ export default function Messages() {
         <div className="flex justify-center py-16">
           <Loader2 className="w-8 h-8 animate-spin text-[#1e3a5f]" />
         </div>
-      ) : messages.length === 0 ? (
+      ) : !Array.isArray(messages) || messages.length === 0 ? (
         <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 py-16 text-center">
           <Mail className="w-12 h-12 mx-auto text-gray-300 mb-4" />
           <h3 className="text-lg font-semibold text-gray-700 mb-2">No messages yet</h3>
@@ -59,7 +59,7 @@ export default function Messages() {
         </div>
       ) : (
         <div className="space-y-4">
-          {messages.map((msg) => (
+          {(Array.isArray(messages) ? messages : []).map((msg) => (
             <motion.div
               key={msg.id}
               initial={{ opacity: 0, y: 10 }}

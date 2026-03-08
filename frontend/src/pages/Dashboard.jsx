@@ -36,8 +36,9 @@ export default function Dashboard() {
         appointmentsApi.list().catch(() => ({ data: [] })),
         applicantsApi.list().catch(() => ({ data: [] })),
       ]);
-      setAppointments(appointmentsRes.data || []);
-      setApplications(applicantsRes.data || []);
+      // Defensive: ensure appointments is always an array
+      setAppointments(Array.isArray(appointmentsRes.data) ? appointmentsRes.data : []);
+      setApplications(Array.isArray(applicantsRes.data) ? applicantsRes.data : []);
     } catch (error) {
       console.error('Error fetching data:', error);
       toast.error('Failed to load dashboard data');
@@ -93,7 +94,7 @@ export default function Dashboard() {
               <Calendar className="h-5 w-5 text-[#1e3a5f]" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-[#1e3a5f]">{loading ? '—' : appointments.length}</div>
+              <div className="text-3xl font-bold text-[#1e3a5f]">{loading ? '—' : (Array.isArray(appointments) ? appointments.length : 0)}</div>
             </CardContent>
           </Card>
         </motion.div>
@@ -118,7 +119,7 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-green-600">
-                {loading ? '—' : appointments.filter(a => a.is_confirmed).length}
+                {loading ? '—' : (Array.isArray(appointments) ? appointments.filter(a => a.is_confirmed).length : 0)}
               </div>
             </CardContent>
           </Card>
@@ -187,7 +188,7 @@ export default function Dashboard() {
               <div className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-[#1e3a5f]" />
               </div>
-            ) : appointments.length === 0 ? (
+            ) : !Array.isArray(appointments) || appointments.length === 0 ? (
               <div className="text-center py-8">
                 <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
                 <p className="text-gray-500 text-sm mb-4">No appointments yet</p>
@@ -201,7 +202,7 @@ export default function Dashboard() {
               </div>
             ) : (
               <div className="space-y-3">
-                {appointments.slice(0, 3).map(apt => (
+                {(Array.isArray(appointments) ? appointments : []).slice(0, 3).map(apt => (
                   <div key={apt.id} className="flex items-center justify-between p-3 bg-[#faf8f5] rounded-xl">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-[#1e3a5f]/10 rounded-lg flex items-center justify-center">

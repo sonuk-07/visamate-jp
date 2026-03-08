@@ -89,6 +89,9 @@ class ApplicantViewSet(viewsets.ModelViewSet):
         return Applicant.objects.none()
 
     def perform_create(self, serializer):
+        import logging
+        logger = logging.getLogger("applicants")
+        logger.warning(f"Applicant create: user={self.request.user} authenticated={self.request.user.is_authenticated}")
         if self.request.user.is_authenticated:
             serializer.save(user=self.request.user)
         else:
