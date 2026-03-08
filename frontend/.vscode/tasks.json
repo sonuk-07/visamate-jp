@@ -1,0 +1,11 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Install Stripe frontend packages",
+			"type": "shell",
+			"command": "npm install @stripe/stripe-js @stripe/react-stripe-js",
+			"group": "build"
+		}
+	]
+}

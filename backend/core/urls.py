@@ -11,6 +11,7 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 from common.serializers import EmailOrUsernameTokenSerializer
+from core.views_payment import create_payment_intent, confirm_payment, stripe_webhook
 
 router = DefaultRouter()
 router.register(r'applicants', ApplicantViewSet)
@@ -36,6 +37,10 @@ urlpatterns = [
     path('api/my-messages/', MyMessagesView.as_view()),
     path('api/', include(router.urls)),
     path('api/auth/', include('rest_framework.urls')),
+    path('api/create-payment-intent/', create_payment_intent, name='create_payment_intent'),
+    path('api/create-payment-intent/', create_payment_intent, name='create_payment_intent'),
+    path('api/confirm-payment/', confirm_payment, name='confirm_payment'),          # ← NEW
+    path('api/stripe-webhook/', stripe_webhook, name='stripe_webhook'),
 ]
 
 if settings.DEBUG:
