@@ -557,14 +557,24 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  // ── WebSocket listeners ──────────────────────────────────────────
   useWebSocket("new_appointment", (msg) => {
-    toast.info(`New appointment from ${msg.data?.name || "a user"}`);
+    toast.info(`📅 New appointment from ${msg.data?.name || "a user"}`);
     loadAppointments();
     loadStats();
   });
+
   useWebSocket("new_enquiry", (msg) => {
-    toast.info(`New enquiry from ${msg.data?.name || "a user"}`);
+    toast.info(`💬 New enquiry from ${msg.data?.name || "a user"}`);
     loadMessages();
+    setUnreadCount((prev) => prev + 1);
+  });
+
+  // ← THIS WAS MISSING — fired by ContactEmailView
+  useWebSocket("new_contact_message", (msg) => {
+    toast.info(`✉️ New message from ${msg.data?.name || "a user"}`);
+    loadMessages();
+    setUnreadCount((prev) => prev + 1);
   });
 
   const loadStats = async () => {
@@ -727,774 +737,795 @@ export default function AdminDashboard() {
   return (
     <Layout>
       <div className="pt-20">
-      {/* Tab bar */}
-      <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
-        <div className="container mx-auto px-6 lg:px-12">
-          <nav className="flex gap-1 overflow-x-auto py-1.5">
-            {[
-              { value: "overview", label: "Overview", icon: LayoutDashboard },
-              { value: "appointments", label: "Appointments", icon: Calendar },
-              {
-                value: "messages",
-                label: "Messages",
-                icon: MessageSquare,
-                badge: unreadCount,
-              },
-              { value: "applicants", label: "Applicants", icon: Users },
-              { value: "slots", label: "Time Slots", icon: Clock },
-            ].map(({ value, label, icon: Icon, badge }) => (
-              <button
-                key={value}
-                onClick={() => setActiveTab(value)}
-                className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-all whitespace-nowrap ${
-                  activeTab === value
-                    ? "bg-[#1e3a5f] text-white shadow-md shadow-[#1e3a5f]/20"
-                    : "text-gray-600 hover:bg-[#1e3a5f]/5 hover:text-[#1e3a5f]"
-                }`}
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-                {badge > 0 && (
-                  <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
-                    {badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </nav>
+        {/* Tab bar */}
+        <div className="sticky top-20 z-40 bg-white/80 backdrop-blur-md border-b border-gray-200/50 shadow-sm">
+          <div className="container mx-auto px-6 lg:px-12">
+            <nav className="flex gap-1 overflow-x-auto py-1.5">
+              {[
+                { value: "overview", label: "Overview", icon: LayoutDashboard },
+                {
+                  value: "appointments",
+                  label: "Appointments",
+                  icon: Calendar,
+                },
+                {
+                  value: "messages",
+                  label: "Messages",
+                  icon: MessageSquare,
+                  badge: unreadCount,
+                },
+                { value: "applicants", label: "Applicants", icon: Users },
+                { value: "slots", label: "Time Slots", icon: Clock },
+              ].map(({ value, label, icon: Icon, badge }) => (
+                <button
+                  key={value}
+                  onClick={() => setActiveTab(value)}
+                  className={`flex items-center gap-2 px-5 py-2.5 text-sm font-medium rounded-xl transition-all whitespace-nowrap ${
+                    activeTab === value
+                      ? "bg-[#1e3a5f] text-white shadow-md shadow-[#1e3a5f]/20"
+                      : "text-gray-600 hover:bg-[#1e3a5f]/5 hover:text-[#1e3a5f]"
+                  }`}
+                >
+                  <Icon className="w-4 h-4" />
+                  {label}
+                  {badge > 0 && (
+                    <span className="ml-1 bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">
+                      {badge}
+                    </span>
+                  )}
+                </button>
+              ))}
+            </nav>
+          </div>
         </div>
-      </div>
 
-      <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea]">
-        <div className="container mx-auto px-6 lg:px-12 pt-6 pb-8">
-          <div className="mb-8">
-            <h1 className="text-2xl font-bold text-[#1e3a5f]">Admin</h1>
-            <p className="text-gray-500 mt-1">
-              Manage appointments, enquiries, and applicants
-            </p>
-          </div>
+        <div className="min-h-screen bg-gradient-to-br from-[#faf8f5] via-white to-[#f5f0ea]">
+          <div className="container mx-auto px-6 lg:px-12 pt-6 pb-8">
+            <div className="mb-8">
+              <h1 className="text-2xl font-bold text-[#1e3a5f]">Admin</h1>
+              <p className="text-gray-500 mt-1">
+                Manage appointments, enquiries, and applicants
+              </p>
+            </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
-            {[
-              {
-                label: "Total Appointments",
-                value: stats?.total || 0,
-                icon: Calendar,
-                color: "text-[#c9a962]",
-              },
-              {
-                label: "Pending",
-                value: stats?.pending || 0,
-                icon: Clock,
-                color: "text-yellow-500",
-              },
-              {
-                label: "Confirmed",
-                value: stats?.confirmed || 0,
-                icon: CheckCircle,
-                color: "text-blue-500",
-              },
-              {
-                label: "Completed",
-                value: stats?.completed || 0,
-                icon: Check,
-                color: "text-green-500",
-              },
-              {
-                label: "Fees Paid",
-                value: paidCount,
-                icon: ShieldCheck,
-                color: "text-green-600",
-              },
-              {
-                label: "Fees Unpaid",
-                value: unpaidCount,
-                icon: AlertCircle,
-                color: "text-amber-500",
-              },
-            ].map(({ label, value, icon: Icon, color }) => (
-              <Card
-                key={label}
-                className="border-0 rounded-3xl shadow-xl shadow-[#1e3a5f]/10"
-              >
-                <CardContent className="pt-6 pb-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-xs text-gray-500">{label}</p>
-                      <p className="text-2xl font-bold text-[#1e3a5f] mt-0.5">
-                        {value}
-                      </p>
-                    </div>
-                    <Icon className={`w-7 h-7 ${color}`} />
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* ── Overview ── */}
-          {activeTab === "overview" && (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100">
-                  <h2 className="font-semibold text-[#1e3a5f]">
-                    Recent Appointments
-                  </h2>
-                </div>
-                <div className="p-6 space-y-3">
-                  {appointments.slice(0, 5).map((apt) => (
-                    <div
-                      key={apt.id}
-                      className="flex items-center justify-between p-3 bg-[#faf8f5] rounded-xl"
-                    >
+            {/* Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-8">
+              {[
+                {
+                  label: "Total Appointments",
+                  value: stats?.total || 0,
+                  icon: Calendar,
+                  color: "text-[#c9a962]",
+                },
+                {
+                  label: "Pending",
+                  value: stats?.pending || 0,
+                  icon: Clock,
+                  color: "text-yellow-500",
+                },
+                {
+                  label: "Confirmed",
+                  value: stats?.confirmed || 0,
+                  icon: CheckCircle,
+                  color: "text-blue-500",
+                },
+                {
+                  label: "Completed",
+                  value: stats?.completed || 0,
+                  icon: Check,
+                  color: "text-green-500",
+                },
+                {
+                  label: "Fees Paid",
+                  value: paidCount,
+                  icon: ShieldCheck,
+                  color: "text-green-600",
+                },
+                {
+                  label: "Fees Unpaid",
+                  value: unpaidCount,
+                  icon: AlertCircle,
+                  color: "text-amber-500",
+                },
+              ].map(({ label, value, icon: Icon, color }) => (
+                <Card
+                  key={label}
+                  className="border-0 rounded-3xl shadow-xl shadow-[#1e3a5f]/10"
+                >
+                  <CardContent className="pt-6 pb-4">
+                    <div className="flex items-center justify-between">
                       <div>
-                        <p className="font-medium text-sm text-[#1e3a5f]">
-                          {apt.full_name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {serviceLabels[apt.service_type] || apt.service_type}
+                        <p className="text-xs text-gray-500">{label}</p>
+                        <p className="text-2xl font-bold text-[#1e3a5f] mt-0.5">
+                          {value}
                         </p>
                       </div>
-                      <Badge className={statusColors[apt.status]}>
-                        {apt.status}
-                      </Badge>
+                      <Icon className={`w-7 h-7 ${color}`} />
                     </div>
-                  ))}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* ── Overview ── */}
+            {activeTab === "overview" && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-100">
+                    <h2 className="font-semibold text-[#1e3a5f]">
+                      Recent Appointments
+                    </h2>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    {appointments.slice(0, 5).map((apt) => (
+                      <div
+                        key={apt.id}
+                        className="flex items-center justify-between p-3 bg-[#faf8f5] rounded-xl"
+                      >
+                        <div>
+                          <p className="font-medium text-sm text-[#1e3a5f]">
+                            {apt.full_name}
+                          </p>
+                          <p className="text-xs text-gray-500">
+                            {serviceLabels[apt.service_type] ||
+                              apt.service_type}
+                          </p>
+                        </div>
+                        <Badge className={statusColors[apt.status]}>
+                          {apt.status}
+                        </Badge>
+                      </div>
+                    ))}
+                    {appointments.length === 0 && (
+                      <p className="text-gray-400 text-sm text-center py-4">
+                        No appointments yet
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
+                  <div className="px-6 py-4 border-b border-gray-100">
+                    <h2 className="font-semibold text-[#1e3a5f]">
+                      Recent Messages
+                    </h2>
+                  </div>
+                  <div className="p-6 space-y-3">
+                    {messages.slice(0, 5).map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-3 rounded-xl ${msg.is_read ? "bg-[#faf8f5]" : "bg-blue-50 border-l-4 border-blue-400"}`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="font-medium text-sm text-[#1e3a5f]">
+                            {msg.name}
+                          </p>
+                          <p className="text-xs text-gray-400">
+                            {format(new Date(msg.created_at), "MMM d, h:mm a")}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">
+                          {msg.message}
+                        </p>
+                      </div>
+                    ))}
+                    {messages.length === 0 && (
+                      <p className="text-gray-400 text-sm text-center py-4">
+                        No messages yet
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Appointments ── */}
+            {activeTab === "appointments" && (
+              <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-[#1e3a5f]">
+                    All Appointments
+                  </h2>
+                  <Button
+                    onClick={loadAppointments}
+                    variant="outline"
+                    size="sm"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
+                </div>
+                <div className="p-6 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-gray-400 text-xs">
+                        <th className="py-3 px-2 font-medium">Customer</th>
+                        <th className="py-3 px-2 font-medium">Service</th>
+                        <th className="py-3 px-2 font-medium">Date & Time</th>
+                        <th className="py-3 px-2 font-medium">Status</th>
+                        <th className="py-3 px-2 font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {appointments.map((apt) => (
+                        <tr
+                          key={apt.id}
+                          className="border-b hover:bg-[#faf8f5]"
+                        >
+                          <td className="py-3 px-2">
+                            <p className="font-medium text-[#1e3a5f]">
+                              {apt.full_name}
+                            </p>
+                            <p className="text-xs text-gray-400">{apt.email}</p>
+                          </td>
+                          <td className="py-3 px-2 text-gray-600">
+                            {serviceLabels[apt.service_type] ||
+                              apt.service_type}
+                          </td>
+                          <td className="py-3 px-2">
+                            {apt.slot_details ? (
+                              <div>
+                                <p className="text-[#1e3a5f]">
+                                  {format(
+                                    new Date(apt.slot_details.date),
+                                    "MMM d, yyyy",
+                                  )}
+                                </p>
+                                <p className="text-xs text-gray-400">
+                                  {apt.slot_details.start_time}
+                                </p>
+                              </div>
+                            ) : (
+                              <p>
+                                {format(
+                                  new Date(apt.appointment_date),
+                                  "MMM d, yyyy h:mm a",
+                                )}
+                              </p>
+                            )}
+                          </td>
+                          <td className="py-3 px-2">
+                            <Select
+                              value={apt.status}
+                              onValueChange={(v) =>
+                                handleUpdateAppointmentStatus(apt.id, v)
+                              }
+                            >
+                              <SelectTrigger
+                                className={`w-32 h-8 text-xs ${statusColors[apt.status]}`}
+                              >
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="pending">Pending</SelectItem>
+                                <SelectItem value="confirmed">
+                                  Confirmed
+                                </SelectItem>
+                                <SelectItem value="completed">
+                                  Completed
+                                </SelectItem>
+                                <SelectItem value="cancelled">
+                                  Cancelled
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-red-500"
+                                onClick={() =>
+                                  confirmDelete(apt, "appointment")
+                                }
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                   {appointments.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center py-4">
+                    <p className="text-gray-400 text-sm text-center py-8">
                       No appointments yet
                     </p>
                   )}
                 </div>
               </div>
+            )}
+
+            {/* ── Messages ── */}
+            {activeTab === "messages" && (
               <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
-                <div className="px-6 py-4 border-b border-gray-100">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
                   <h2 className="font-semibold text-[#1e3a5f]">
-                    Recent Messages
+                    Contact Messages
                   </h2>
+                  <Button onClick={loadMessages} variant="outline" size="sm">
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh
+                  </Button>
                 </div>
-                <div className="p-6 space-y-3">
-                  {messages.slice(0, 5).map((msg) => (
+                <div className="p-6 space-y-4">
+                  {messages.map((msg) => (
                     <div
                       key={msg.id}
-                      className={`p-3 rounded-xl ${msg.is_read ? "bg-[#faf8f5]" : "bg-blue-50 border-l-4 border-blue-400"}`}
+                      className={`p-4 rounded-2xl border ${msg.is_read ? "bg-white border-gray-100" : "bg-blue-50 border-blue-200"}`}
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="font-medium text-sm text-[#1e3a5f]">
-                          {msg.name}
-                        </p>
-                        <p className="text-xs text-gray-400">
-                          {format(new Date(msg.created_at), "MMM d, h:mm a")}
-                        </p>
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-medium text-sm text-[#1e3a5f]">
+                              {msg.name}
+                            </h4>
+                            {!msg.is_read && (
+                              <Badge className="bg-blue-500 text-xs">New</Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
+                            <span className="flex items-center gap-1">
+                              <Mail className="w-3 h-3" />
+                              {msg.email}
+                            </span>
+                            {msg.phone && (
+                              <span className="flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                {msg.phone}
+                              </span>
+                            )}
+                          </div>
+                          <p className="text-sm text-gray-700">{msg.message}</p>
+                          <p className="text-xs text-gray-400 mt-1">
+                            {format(
+                              new Date(msg.created_at),
+                              "MMMM d, yyyy h:mm a",
+                            )}
+                          </p>
+                          {msg.admin_reply && (
+                            <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
+                              <Badge className="bg-green-500 text-xs mb-1">
+                                Replied ✓
+                              </Badge>
+                              <p className="text-sm text-gray-700">
+                                {msg.admin_reply}
+                              </p>
+                            </div>
+                          )}
+                          {replyingTo === msg.id && (
+                            <div className="mt-3 space-y-2">
+                              <Textarea
+                                placeholder="Type your reply..."
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                rows={3}
+                              />
+                              <div className="flex gap-2">
+                                <Button
+                                  size="sm"
+                                  onClick={() => handleReplyToMessage(msg.id)}
+                                  disabled={sendingReply || !replyText.trim()}
+                                >
+                                  <Send className="w-4 h-4 mr-1" />
+                                  {sendingReply ? "Sending..." : "Send Reply"}
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => {
+                                    setReplyingTo(null);
+                                    setReplyText("");
+                                  }}
+                                >
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        <div className="flex gap-2 ml-4 shrink-0">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => {
+                              setReplyingTo(
+                                replyingTo === msg.id ? null : msg.id,
+                              );
+                              setReplyText(msg.admin_reply || "");
+                            }}
+                          >
+                            <Reply className="w-4 h-4" />
+                          </Button>
+                          {!msg.is_read && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleMarkMessageRead(msg.id)}
+                            >
+                              <Check className="w-4 h-4" />
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="text-red-500"
+                            onClick={() => confirmDelete(msg, "message")}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
-                      <p className="text-xs text-gray-500 truncate mt-0.5">
-                        {msg.message}
-                      </p>
                     </div>
                   ))}
                   {messages.length === 0 && (
-                    <p className="text-gray-400 text-sm text-center py-4">
+                    <p className="text-gray-400 text-sm text-center py-8">
                       No messages yet
                     </p>
                   )}
                 </div>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* ── Appointments ── */}
-          {activeTab === "appointments" && (
-            <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 className="font-semibold text-[#1e3a5f]">
-                  All Appointments
-                </h2>
-                <Button onClick={loadAppointments} variant="outline" size="sm">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh
-                </Button>
-              </div>
-              <div className="p-6 overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-400 text-xs">
-                      <th className="py-3 px-2 font-medium">Customer</th>
-                      <th className="py-3 px-2 font-medium">Service</th>
-                      <th className="py-3 px-2 font-medium">Date & Time</th>
-                      <th className="py-3 px-2 font-medium">Status</th>
-                      <th className="py-3 px-2 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {appointments.map((apt) => (
-                      <tr key={apt.id} className="border-b hover:bg-[#faf8f5]">
-                        <td className="py-3 px-2">
-                          <p className="font-medium text-[#1e3a5f]">
-                            {apt.full_name}
-                          </p>
-                          <p className="text-xs text-gray-400">{apt.email}</p>
-                        </td>
-                        <td className="py-3 px-2 text-gray-600">
-                          {serviceLabels[apt.service_type] || apt.service_type}
-                        </td>
-                        <td className="py-3 px-2">
-                          {apt.slot_details ? (
-                            <div>
-                              <p className="text-[#1e3a5f]">
-                                {format(
-                                  new Date(apt.slot_details.date),
-                                  "MMM d, yyyy",
-                                )}
-                              </p>
-                              <p className="text-xs text-gray-400">
-                                {apt.slot_details.start_time}
-                              </p>
-                            </div>
-                          ) : (
-                            <p>
-                              {format(
-                                new Date(apt.appointment_date),
-                                "MMM d, yyyy h:mm a",
-                              )}
-                            </p>
-                          )}
-                        </td>
-                        <td className="py-3 px-2">
-                          <Select
-                            value={apt.status}
-                            onValueChange={(v) =>
-                              handleUpdateAppointmentStatus(apt.id, v)
-                            }
-                          >
-                            <SelectTrigger
-                              className={`w-32 h-8 text-xs ${statusColors[apt.status]}`}
-                            >
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="pending">Pending</SelectItem>
-                              <SelectItem value="confirmed">
-                                Confirmed
-                              </SelectItem>
-                              <SelectItem value="completed">
-                                Completed
-                              </SelectItem>
-                              <SelectItem value="cancelled">
-                                Cancelled
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-red-500"
-                              onClick={() => confirmDelete(apt, "appointment")}
-                            >
-                              <XCircle className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {appointments.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-8">
-                    No appointments yet
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Messages ── */}
-          {activeTab === "messages" && (
-            <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 className="font-semibold text-[#1e3a5f]">
-                  Contact Messages
-                </h2>
-                <Button onClick={loadMessages} variant="outline" size="sm">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh
-                </Button>
-              </div>
-              <div className="p-6 space-y-4">
-                {messages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={`p-4 rounded-2xl border ${msg.is_read ? "bg-white border-gray-100" : "bg-blue-50 border-blue-200"}`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-sm text-[#1e3a5f]">
-                            {msg.name}
-                          </h4>
-                          {!msg.is_read && (
-                            <Badge className="bg-blue-500 text-xs">New</Badge>
-                          )}
-                        </div>
-                        <div className="flex items-center gap-3 text-xs text-gray-400 mb-2">
-                          <span className="flex items-center gap-1">
-                            <Mail className="w-3 h-3" />
-                            {msg.email}
-                          </span>
-                          {msg.phone && (
-                            <span className="flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {msg.phone}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-700">{msg.message}</p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {format(
-                            new Date(msg.created_at),
-                            "MMMM d, yyyy h:mm a",
-                          )}
-                        </p>
-                        {msg.admin_reply && (
-                          <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-xl">
-                            <Badge className="bg-green-500 text-xs mb-1">
-                              Replied ✓
-                            </Badge>
-                            <p className="text-sm text-gray-700">
-                              {msg.admin_reply}
-                            </p>
-                          </div>
-                        )}
-                        {replyingTo === msg.id && (
-                          <div className="mt-3 space-y-2">
-                            <Textarea
-                              placeholder="Type your reply..."
-                              value={replyText}
-                              onChange={(e) => setReplyText(e.target.value)}
-                              rows={3}
-                            />
-                            <div className="flex gap-2">
-                              <Button
-                                size="sm"
-                                onClick={() => handleReplyToMessage(msg.id)}
-                                disabled={sendingReply || !replyText.trim()}
-                              >
-                                <Send className="w-4 h-4 mr-1" />
-                                {sendingReply ? "Sending..." : "Send Reply"}
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {
-                                  setReplyingTo(null);
-                                  setReplyText("");
-                                }}
-                              >
-                                Cancel
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex gap-2 ml-4 shrink-0">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setReplyingTo(
-                              replyingTo === msg.id ? null : msg.id,
-                            );
-                            setReplyText(msg.admin_reply || "");
-                          }}
-                        >
-                          <Reply className="w-4 h-4" />
-                        </Button>
-                        {!msg.is_read && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handleMarkMessageRead(msg.id)}
-                          >
-                            <Check className="w-4 h-4" />
-                          </Button>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="text-red-500"
-                          onClick={() => confirmDelete(msg, "message")}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {messages.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-8">
-                    No messages yet
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Applicants ── */}
-          {activeTab === "applicants" && (
-            <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 className="font-semibold text-[#1e3a5f]">
-                  All Applications
-                </h2>
-                <Button onClick={loadApplicants} variant="outline" size="sm">
-                  <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh
-                </Button>
-              </div>
-              <div className="p-6 overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-400 text-xs">
-                      <th className="py-3 px-2 font-medium">Name</th>
-                      <th className="py-3 px-2 font-medium">Destination</th>
-                      <th className="py-3 px-2 font-medium">Visa</th>
-                      <th className="py-3 px-2 font-medium">Status</th>
-                      <th className="py-3 px-2 font-medium">Payment</th>
-                      <th className="py-3 px-2 font-medium">Feedback</th>
-                      <th className="py-3 px-2 font-medium">Applied</th>
-                      <th className="py-3 px-2 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {applicants.map((app) => (
-                      <tr key={app.id} className="border-b hover:bg-[#faf8f5]">
-                        <td className="py-3 px-2">
-                          <p className="font-medium text-[#1e3a5f]">
-                            {app.first_name} {app.last_name}
-                          </p>
-                          <p className="text-xs text-gray-400">{app.email}</p>
-                          {app.phone && (
-                            <p className="text-xs text-gray-400 flex items-center gap-1">
-                              <Phone className="w-3 h-3" />
-                              {app.phone}
-                            </p>
-                          )}
-                        </td>
-                        <td className="py-3 px-2">
-                          {COUNTRY_LABELS[app.destination_country] ||
-                            app.destination_country}
-                        </td>
-                        <td className="py-3 px-2 text-gray-600 text-xs">
-                          {VISA_LABELS[app.visa_type] || app.visa_type}
-                        </td>
-                        <td className="py-3 px-2">
-                          <Badge
-                            className={
-                              statusColors[app.status] ||
-                              "bg-gray-100 text-gray-700"
-                            }
-                          >
-                            {app.status}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex flex-col gap-1">
-                            <PaymentBadge
-                              paymentStatus={app.payment_status}
-                              intentId={app.stripe_payment_intent_id}
-                            />
-                            {app.payment_status !== "paid" && (
-                              <button
-                                onClick={() =>
-                                  handleUpdatePaymentStatus(app.id, "paid")
-                                }
-                                className="text-xs text-green-600 hover:underline text-left"
-                              >
-                                + Mark paid
-                              </button>
-                            )}
-                          </div>
-                        </td>
-                        <td className="py-3 px-2">
-                          {app.admin_notes ? (
-                            <span className="text-xs text-blue-600 flex items-center gap-1">
-                              <MessageCircle className="w-3 h-3" /> Sent
-                            </span>
-                          ) : (
-                            <span className="text-xs text-gray-300">—</span>
-                          )}
-                        </td>
-                        <td className="py-3 px-2 text-gray-400 text-xs">
-                          {app.created_at
-                            ? format(new Date(app.created_at), "PP")
-                            : "-"}
-                        </td>
-                        <td className="py-3 px-2">
-                          <div className="flex gap-1">
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => openApplicant(app)}
-                              title="Review & Send Feedback"
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-red-500"
-                              onClick={() => confirmDelete(app, "applicant")}
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {applicants.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-8">
-                    No applications yet
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Slots ── */}
-          {activeTab === "slots" && (
-            <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
-              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                <h2 className="font-semibold text-[#1e3a5f]">
-                  Appointment Slots
-                </h2>
-                <div className="flex gap-2">
-                  <Button onClick={loadSlots} variant="outline" size="sm">
+            {/* ── Applicants ── */}
+            {activeTab === "applicants" && (
+              <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-[#1e3a5f]">
+                    All Applications
+                  </h2>
+                  <Button onClick={loadApplicants} variant="outline" size="sm">
                     <RefreshCw className="w-4 h-4 mr-2" />
                     Refresh
                   </Button>
-                  <Button
-                    onClick={() => setShowSlotDialog(true)}
-                    size="sm"
-                    className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white"
-                  >
-                    <Plus className="w-4 h-4 mr-2" />
-                    Add Slot
-                  </Button>
                 </div>
-              </div>
-              <div className="p-6 overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b text-left text-gray-400 text-xs">
-                      <th className="py-3 px-2 font-medium">Date</th>
-                      <th className="py-3 px-2 font-medium">Time</th>
-                      <th className="py-3 px-2 font-medium">Service</th>
-                      <th className="py-3 px-2 font-medium">Bookings</th>
-                      <th className="py-3 px-2 font-medium">Status</th>
-                      <th className="py-3 px-2 font-medium">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {slots.map((slot) => (
-                      <tr key={slot.id} className="border-b hover:bg-[#faf8f5]">
-                        <td className="py-3 px-2 text-[#1e3a5f]">
-                          {format(new Date(slot.date), "MMM d, yyyy")}
-                        </td>
-                        <td className="py-3 px-2 text-gray-600">
-                          {slot.start_time} - {slot.end_time}
-                        </td>
-                        <td className="py-3 px-2 text-gray-600">
-                          {serviceLabels[slot.service_type] ||
-                            slot.service_type}
-                        </td>
-                        <td className="py-3 px-2 text-gray-600">
-                          {slot.current_bookings} / {slot.max_bookings}
-                        </td>
-                        <td className="py-3 px-2">
-                          <Badge
-                            className={
-                              slot.is_available
-                                ? "bg-green-100 text-green-800"
-                                : "bg-red-100 text-red-800"
-                            }
-                          >
-                            {slot.is_available ? "Available" : "Full"}
-                          </Badge>
-                        </td>
-                        <td className="py-3 px-2">
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-red-500"
-                            onClick={() => confirmDelete(slot, "slot")}
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
-                        </td>
+                <div className="p-6 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-gray-400 text-xs">
+                        <th className="py-3 px-2 font-medium">Name</th>
+                        <th className="py-3 px-2 font-medium">Destination</th>
+                        <th className="py-3 px-2 font-medium">Visa</th>
+                        <th className="py-3 px-2 font-medium">Status</th>
+                        <th className="py-3 px-2 font-medium">Payment</th>
+                        <th className="py-3 px-2 font-medium">Feedback</th>
+                        <th className="py-3 px-2 font-medium">Applied</th>
+                        <th className="py-3 px-2 font-medium">Actions</th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {slots.length === 0 && (
-                  <p className="text-gray-400 text-sm text-center py-8">
-                    No slots yet
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* ── Applicant Detail + Feedback Dialog ── */}
-          <ApplicantDetailDialog
-            app={selectedApplicant}
-            open={showApplicantDialog}
-            onClose={() => {
-              setShowApplicantDialog(false);
-              setSelectedApplicant(null);
-            }}
-            onStatusChange={loadApplicants}
-            onFeedbackSent={loadApplicants}
-            onPaymentStatusChange={handleUpdatePaymentStatus}
-          />
-
-          {/* Delete Dialog */}
-          <AlertDialog
-            open={showDeleteDialog}
-            onOpenChange={(o) => {
-              if (!o) {
-                setShowDeleteDialog(false);
-                setSelectedItem(null);
-                setDeleteType("");
-              }
-            }}
-          >
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  This action cannot be undone.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={(e) => {
-                    e.preventDefault();
-                    handleDelete();
-                  }}
-                  className="bg-red-600 hover:bg-red-700"
-                >
-                  Delete
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-
-          {/* Add Slot Dialog */}
-          <Dialog open={showSlotDialog} onOpenChange={setShowSlotDialog}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Time Slot</DialogTitle>
-                <DialogDescription>
-                  Add a new appointment slot for customers to book.
-                </DialogDescription>
-              </DialogHeader>
-              <form onSubmit={handleCreateSlot} className="space-y-4">
-                <div>
-                  <Label>Date</Label>
-                  <Input
-                    type="date"
-                    value={newSlot.date}
-                    onChange={(e) =>
-                      setNewSlot({ ...newSlot, date: e.target.value })
-                    }
-                    required
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Start Time</Label>
-                    <Input
-                      type="time"
-                      value={newSlot.start_time}
-                      onChange={(e) =>
-                        setNewSlot({ ...newSlot, start_time: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label>End Time</Label>
-                    <Input
-                      type="time"
-                      value={newSlot.end_time}
-                      onChange={(e) =>
-                        setNewSlot({ ...newSlot, end_time: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label>Service Type</Label>
-                  <Select
-                    value={newSlot.service_type}
-                    onValueChange={(v) =>
-                      setNewSlot({ ...newSlot, service_type: v })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Object.entries(serviceLabels).map(([v, l]) => (
-                        <SelectItem key={v} value={v}>
-                          {l}
-                        </SelectItem>
+                    </thead>
+                    <tbody>
+                      {applicants.map((app) => (
+                        <tr
+                          key={app.id}
+                          className="border-b hover:bg-[#faf8f5]"
+                        >
+                          <td className="py-3 px-2">
+                            <p className="font-medium text-[#1e3a5f]">
+                              {app.first_name} {app.last_name}
+                            </p>
+                            <p className="text-xs text-gray-400">{app.email}</p>
+                            {app.phone && (
+                              <p className="text-xs text-gray-400 flex items-center gap-1">
+                                <Phone className="w-3 h-3" />
+                                {app.phone}
+                              </p>
+                            )}
+                          </td>
+                          <td className="py-3 px-2">
+                            {COUNTRY_LABELS[app.destination_country] ||
+                              app.destination_country}
+                          </td>
+                          <td className="py-3 px-2 text-gray-600 text-xs">
+                            {VISA_LABELS[app.visa_type] || app.visa_type}
+                          </td>
+                          <td className="py-3 px-2">
+                            <Badge
+                              className={
+                                statusColors[app.status] ||
+                                "bg-gray-100 text-gray-700"
+                              }
+                            >
+                              {app.status}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex flex-col gap-1">
+                              <PaymentBadge
+                                paymentStatus={app.payment_status}
+                                intentId={app.stripe_payment_intent_id}
+                              />
+                              {app.payment_status !== "paid" && (
+                                <button
+                                  onClick={() =>
+                                    handleUpdatePaymentStatus(app.id, "paid")
+                                  }
+                                  className="text-xs text-green-600 hover:underline text-left"
+                                >
+                                  + Mark paid
+                                </button>
+                              )}
+                            </div>
+                          </td>
+                          <td className="py-3 px-2">
+                            {app.admin_notes ? (
+                              <span className="text-xs text-blue-600 flex items-center gap-1">
+                                <MessageCircle className="w-3 h-3" /> Sent
+                              </span>
+                            ) : (
+                              <span className="text-xs text-gray-300">—</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-2 text-gray-400 text-xs">
+                            {app.created_at
+                              ? format(new Date(app.created_at), "PP")
+                              : "-"}
+                          </td>
+                          <td className="py-3 px-2">
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => openApplicant(app)}
+                                title="Review & Send Feedback"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="text-red-500"
+                                onClick={() => confirmDelete(app, "applicant")}
+                              >
+                                <Trash2 className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
                       ))}
-                    </SelectContent>
-                  </Select>
+                    </tbody>
+                  </table>
+                  {applicants.length === 0 && (
+                    <p className="text-gray-400 text-sm text-center py-8">
+                      No applications yet
+                    </p>
+                  )}
                 </div>
-                <div>
-                  <Label>Max Bookings</Label>
-                  <Input
-                    type="number"
-                    min="1"
-                    value={newSlot.max_bookings}
-                    onChange={(e) =>
-                      setNewSlot({
-                        ...newSlot,
-                        max_bookings: parseInt(e.target.value),
-                      })
-                    }
-                    required
-                  />
+              </div>
+            )}
+
+            {/* ── Slots ── */}
+            {activeTab === "slots" && (
+              <div className="bg-white rounded-3xl shadow-xl shadow-[#1e3a5f]/10 overflow-hidden">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+                  <h2 className="font-semibold text-[#1e3a5f]">
+                    Appointment Slots
+                  </h2>
+                  <div className="flex gap-2">
+                    <Button onClick={loadSlots} variant="outline" size="sm">
+                      <RefreshCw className="w-4 h-4 mr-2" />
+                      Refresh
+                    </Button>
+                    <Button
+                      onClick={() => setShowSlotDialog(true)}
+                      size="sm"
+                      className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white"
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Add Slot
+                    </Button>
+                  </div>
                 </div>
-                <DialogFooter>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => setShowSlotDialog(false)}
+                <div className="p-6 overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b text-left text-gray-400 text-xs">
+                        <th className="py-3 px-2 font-medium">Date</th>
+                        <th className="py-3 px-2 font-medium">Time</th>
+                        <th className="py-3 px-2 font-medium">Service</th>
+                        <th className="py-3 px-2 font-medium">Bookings</th>
+                        <th className="py-3 px-2 font-medium">Status</th>
+                        <th className="py-3 px-2 font-medium">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {slots.map((slot) => (
+                        <tr
+                          key={slot.id}
+                          className="border-b hover:bg-[#faf8f5]"
+                        >
+                          <td className="py-3 px-2 text-[#1e3a5f]">
+                            {format(new Date(slot.date), "MMM d, yyyy")}
+                          </td>
+                          <td className="py-3 px-2 text-gray-600">
+                            {slot.start_time} - {slot.end_time}
+                          </td>
+                          <td className="py-3 px-2 text-gray-600">
+                            {serviceLabels[slot.service_type] ||
+                              slot.service_type}
+                          </td>
+                          <td className="py-3 px-2 text-gray-600">
+                            {slot.current_bookings} / {slot.max_bookings}
+                          </td>
+                          <td className="py-3 px-2">
+                            <Badge
+                              className={
+                                slot.is_available
+                                  ? "bg-green-100 text-green-800"
+                                  : "bg-red-100 text-red-800"
+                              }
+                            >
+                              {slot.is_available ? "Available" : "Full"}
+                            </Badge>
+                          </td>
+                          <td className="py-3 px-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-red-500"
+                              onClick={() => confirmDelete(slot, "slot")}
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {slots.length === 0 && (
+                    <p className="text-gray-400 text-sm text-center py-8">
+                      No slots yet
+                    </p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* ── Applicant Detail + Feedback Dialog ── */}
+            <ApplicantDetailDialog
+              app={selectedApplicant}
+              open={showApplicantDialog}
+              onClose={() => {
+                setShowApplicantDialog(false);
+                setSelectedApplicant(null);
+              }}
+              onStatusChange={loadApplicants}
+              onFeedbackSent={loadApplicants}
+              onPaymentStatusChange={handleUpdatePaymentStatus}
+            />
+
+            {/* Delete Dialog */}
+            <AlertDialog
+              open={showDeleteDialog}
+              onOpenChange={(o) => {
+                if (!o) {
+                  setShowDeleteDialog(false);
+                  setSelectedItem(null);
+                  setDeleteType("");
+                }
+              }}
+            >
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={(e) => {
+                      e.preventDefault();
+                      handleDelete();
+                    }}
+                    className="bg-red-600 hover:bg-red-700"
                   >
-                    Cancel
-                  </Button>
-                  <Button
-                    type="submit"
-                    className="bg-[#1e3a5f] hover:bg-[#2a4a6f]"
-                  >
-                    Create Slot
-                  </Button>
-                </DialogFooter>
-              </form>
-            </DialogContent>
-          </Dialog>
+                    Delete
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+
+            {/* Add Slot Dialog */}
+            <Dialog open={showSlotDialog} onOpenChange={setShowSlotDialog}>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Create New Time Slot</DialogTitle>
+                  <DialogDescription>
+                    Add a new appointment slot for customers to book.
+                  </DialogDescription>
+                </DialogHeader>
+                <form onSubmit={handleCreateSlot} className="space-y-4">
+                  <div>
+                    <Label>Date</Label>
+                    <Input
+                      type="date"
+                      value={newSlot.date}
+                      onChange={(e) =>
+                        setNewSlot({ ...newSlot, date: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>Start Time</Label>
+                      <Input
+                        type="time"
+                        value={newSlot.start_time}
+                        onChange={(e) =>
+                          setNewSlot({ ...newSlot, start_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label>End Time</Label>
+                      <Input
+                        type="time"
+                        value={newSlot.end_time}
+                        onChange={(e) =>
+                          setNewSlot({ ...newSlot, end_time: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label>Service Type</Label>
+                    <Select
+                      value={newSlot.service_type}
+                      onValueChange={(v) =>
+                        setNewSlot({ ...newSlot, service_type: v })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(serviceLabels).map(([v, l]) => (
+                          <SelectItem key={v} value={v}>
+                            {l}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Max Bookings</Label>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={newSlot.max_bookings}
+                      onChange={(e) =>
+                        setNewSlot({
+                          ...newSlot,
+                          max_bookings: parseInt(e.target.value),
+                        })
+                      }
+                      required
+                    />
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowSlotDialog(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="bg-[#1e3a5f] hover:bg-[#2a4a6f]"
+                    >
+                      Create Slot
+                    </Button>
+                  </DialogFooter>
+                </form>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
-      </div>
       </div>
     </Layout>
   );
