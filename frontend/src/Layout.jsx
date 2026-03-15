@@ -299,9 +299,7 @@ export default function Layout({ children }) {
                 className="h-10 w-10 object-contain"
               />
               <span
-                className={`text-xl font-bold transition-colors ${
-                  isScrolled ? "text-[#1e3a5f]" : "text-white"
-                }`}
+                className="text-xl font-bold text-[#1e3a5f] transition-colors"
               >
                 VisaMate Japan
               </span>
