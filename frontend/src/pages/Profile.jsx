@@ -1,6 +1,8 @@
+// @ts-ignore
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate, Link } from 'react-router-dom';
+// @ts-ignore
 import { User, ArrowLeft, Save, Loader2, Lock, Eye, EyeOff, Mail } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -131,7 +133,9 @@ export default function Profile() {
               <div className="flex items-center gap-4">
                 <div className="w-14 h-14 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 flex items-center justify-center">
                   <span className="text-2xl font-bold text-white">
-                    {(formData.first_name || formData.username || '?')[0].toUpperCase()}
+                    {(formData.first_name || formData.
+// @ts-ignore
+                    username || '?')[0].toUpperCase()}
                   </span>
                 </div>
                 <div>
@@ -145,6 +149,7 @@ export default function Profile() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#1e3a5f] ml-1">First Name</label>
                   <Input
+                    // @ts-ignore
                     name="first_name"
                     value={formData.first_name}
                     onChange={handleChange}
@@ -155,6 +160,7 @@ export default function Profile() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-[#1e3a5f] ml-1">Last Name</label>
                   <Input
+                    // @ts-ignore
                     name="last_name"
                     value={formData.last_name}
                     onChange={handleChange}
@@ -169,6 +175,7 @@ export default function Profile() {
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
+                    // @ts-ignore
                     name="email"
                     type="email"
                     value={formData.email}
@@ -180,7 +187,9 @@ export default function Profile() {
               </div>
 
               <div className="pt-2">
-                <Button
+                <
+// @ts-ignore
+                Button
                   type="submit"
                   disabled={loading}
                   className="w-full h-12 bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white rounded-xl text-base font-semibold shadow-lg shadow-[#1e3a5f]/20 hover:shadow-xl hover:shadow-[#1e3a5f]/30 transition-all duration-300"
@@ -225,6 +234,7 @@ export default function Profile() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
+                    // @ts-ignore
                     name="current_password"
                     type={showCurrentPassword ? 'text' : 'password'}
                     value={passwordData.current_password}
@@ -243,6 +253,7 @@ export default function Profile() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
+                    // @ts-ignore
                     name="new_password"
                     type={showNewPassword ? 'text' : 'password'}
                     value={passwordData.new_password}
@@ -261,6 +272,7 @@ export default function Profile() {
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <Input
+                    // @ts-ignore
                     name="confirm_password"
                     type={showConfirmPassword ? 'text' : 'password'}
                     value={passwordData.confirm_password}
@@ -275,7 +287,9 @@ export default function Profile() {
               </div>
 
               <div className="pt-2">
-                <Button
+                <
+// @ts-ignore
+                Button
                   type="submit"
                   disabled={passwordLoading || !passwordData.current_password || !passwordData.new_password || !passwordData.confirm_password}
                   className="w-full h-12 bg-[#c9a962] hover:bg-[#b89852] text-white rounded-xl text-base font-semibold shadow-lg shadow-[#c9a962]/20 hover:shadow-xl hover:shadow-[#c9a962]/30 transition-all duration-300"

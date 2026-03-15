@@ -1,24 +1,3 @@
-"""
-Common Serializers Module
-=========================
-
-This module provides serializers for common functionality including
-user authentication, profile management, and contact forms.
-
-Serializers:
-    - UserSerializer: Serializes user profile data
-    - RegisterSerializer: Handles user registration with password
-    - ContactMessageSerializer: Serializes contact form submissions
-
-Usage:
-    from common.serializers import RegisterSerializer
-    
-    # Register a new user
-    serializer = RegisterSerializer(data=registration_data)
-    if serializer.is_valid():
-        user = serializer.save()
-"""
-
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
@@ -34,7 +13,6 @@ class EmailOrUsernameTokenSerializer(TokenObtainPairSerializer):
             user = User.objects.filter(email=username_field).first()
             if user:
                 attrs['username'] = user.username
-            # else: let parent raise invalid credentials
         return super().validate(attrs)
 
 
@@ -67,30 +45,6 @@ class UserSerializer(serializers.ModelSerializer):
 
 
 class RegisterSerializer(serializers.ModelSerializer):
-    """
-    Serializer for user registration.
-    
-    Handles new user creation with password hashing.
-    Password is write-only and never returned in responses.
-    
-    Fields:
-        id (int): Generated user ID (read-only)
-        username (str): Required unique username
-        password (str): Required password (write-only)
-        email (str): Email address
-        first_name (str): First name (optional)
-        last_name (str): Last name (optional)
-    
-    Example Input:
-        {
-            "username": "johndoe",
-            "password": "securepassword123",
-            "email": "john@example.com",
-            "first_name": "John",
-            "last_name": "Doe"
-        }
-    """
-    
     password = serializers.CharField(write_only=True)
 
     class Meta:
@@ -106,22 +60,19 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def validate_email(self, value):
-        if User.objects.filter(email=value).exists():
-            raise serializers.ValidationError('A user with this email already exists.')
+        existing = User.objects.filter(email=value).first()
+        if existing:
+            if not existing.is_active:
+                raise serializers.ValidationError(
+                    'This email is already registered but not verified. '
+                    'Please use the Resend OTP option to complete verification.'
+                )
+            raise serializers.ValidationError(
+                'An account with this email already exists. Please log in instead.'
+            )
         return value
 
     def create(self, validated_data):
-        """
-        Create a new user with hashed password.
-        
-        Auto-generates username from email if not provided.
-        
-        Args:
-            validated_data (dict): Validated registration data.
-        
-        Returns:
-            User: The newly created user instance.
-        """
         if not validated_data.get('username'):
             base = validated_data['email'].split('@')[0]
             username = base
@@ -143,28 +94,6 @@ class RegisterSerializer(serializers.ModelSerializer):
 
 
 class ContactMessageSerializer(serializers.ModelSerializer):
-    """
-    Serializer for ContactMessage model.
-    
-    Handles contact form submissions from website visitors.
-    
-    Fields:
-        id (int): Message primary key
-        name (str): Sender's name
-        email (str): Sender's email address
-        subject (str): Message subject
-        message (str): Message content
-        created_at (datetime): Submission timestamp
-    
-    Example Input:
-        {
-            "name": "Jane Smith",
-            "email": "jane@example.com",
-            "subject": "Inquiry about visa services",
-            "message": "I would like to know more about..."
-        }
-    """
-    
     class Meta:
         model = ContactMessage
         fields = '__all__'
