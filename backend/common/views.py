@@ -28,6 +28,7 @@ API Endpoints:
 from rest_framework import generics, viewsets, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from django.db import models
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.models import User
@@ -334,7 +335,14 @@ class ContactMessageViewSet(viewsets.ModelViewSet):
 
         # Send real-time WebSocket notification to the user
         try:
-            matched_user = User.objects.filter(email=message.email).first()
+            matched_user = User.objects.filter(email__iexact=message.email).first()
+            print(f"DEBUG reply: email={message.email}, matched_user={matched_user}")
+            if matched_user:
+                send_ws_notification(
+                    f'user_{matched_user.id}',
+                    'message_update',
+                    {'message_id': message.id},
+                )
             if matched_user:
                 send_ws_notification(
                     f'user_{matched_user.id}',
@@ -655,13 +663,16 @@ class ChatbotView(APIView):
 
 
 class MyMessagesView(generics.ListAPIView):
-    """Return contact messages (with admin replies) for the authenticated user."""
     serializer_class = ContactMessageSerializer
     permission_classes = [permissions.IsAuthenticated]
+    pagination_class = None  # always return plain array
 
     def get_queryset(self):
+        user_email = self.request.user.email
+        if not user_email:
+            return ContactMessage.objects.none()
         return ContactMessage.objects.filter(
-            email=self.request.user.email,
+            email__iexact=user_email,        # match by email, case-insensitive
             admin_reply__isnull=False,
         ).exclude(admin_reply='').order_by('-replied_at')
 

@@ -99,7 +99,11 @@ export default function Layout({ children }) {
           <div className="container mx-auto px-6 lg:px-12">
             <div className="flex items-center justify-between h-20">
               {/* Logo */}
-              <Link to="/Dashboard" className="flex items-center gap-3">
+              <a
+                href="#"
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={(e) => handleNavClick(e, "")}
+              >
                 <img
                   src="https://qtrypzzcjebvfcihiynt.supabase.co/storage/v1/object/public/base44-prod/public/69400f2c603e9672600c487c/f85b456f9_IMG_82332.jpg"
                   alt="VisaMate Japan"
@@ -108,7 +112,7 @@ export default function Layout({ children }) {
                 <span className="text-xl font-bold text-[#1e3a5f]">
                   VisaMate Japan
                 </span>
-              </Link>
+              </a>
 
               {/* Right Side - Desktop */}
               <div className="hidden lg:flex items-center gap-4">
