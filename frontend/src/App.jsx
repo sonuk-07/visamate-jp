@@ -18,7 +18,7 @@ const MainPage = mainPageKey ? Pages[mainPageKey] : <></>;
 
 // Pages that use DashboardLayout (authenticated)
 const DASHBOARD_PAGES = new Set([
-  'Dashboard', 'MyProfile', 'Applications', 'Messages',
+  'Dashboard', 'Applications', 'Messages',
   'NewApplication', 'AppointmentBooking',
 ]);
 
