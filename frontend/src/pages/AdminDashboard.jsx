@@ -109,6 +109,8 @@ const EDUCATION_LABELS = {
   other: "Other",
 };
 
+const DAY_NAMES = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 // ─── Payment Badge ────────────────────────────────────────────────────────────
 function PaymentBadge({ paymentStatus, intentId }) {
   if (paymentStatus === "paid") {
@@ -516,13 +518,17 @@ export default function AdminDashboard() {
   const [replyText, setReplyText] = useState("");
   const [sendingReply, setSendingReply] = useState(false);
 
-  const [newSlot, setNewSlot] = useState({
-    date: "",
-    start_time: "",
-    end_time: "",
+  const [bulkSlot, setBulkSlot] = useState({
+    date_from: "",
+    date_to: "",
+    days_of_week: [],
+    time_slots: [{ start_time: "09:00", end_time: "10:00" }],
     service_type: "general_consultation",
     max_bookings: 3,
   });
+  const [preview, setPreview] = useState([]);
+  const [showPreview, setShowPreview] = useState(false);
+  const [bulkCreating, setBulkCreating] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -688,24 +694,6 @@ export default function AdminDashboard() {
       setSelectedItem(null);
     }
   };
-  const handleCreateSlot = async (e) => {
-    e.preventDefault();
-    try {
-      await adminApi.createSlot({ ...newSlot, is_active: true });
-      toast.success("Slot created");
-      setShowSlotDialog(false);
-      setNewSlot({
-        date: "",
-        start_time: "",
-        end_time: "",
-        service_type: "general_consultation",
-        max_bookings: 3,
-      });
-      loadSlots();
-    } catch {
-      toast.error("Failed to create slot");
-    }
-  };
   const confirmDelete = (item, type) => {
     setSelectedItem(item);
     setDeleteType(type);
@@ -715,6 +703,108 @@ export default function AdminDashboard() {
   const openApplicant = (app) => {
     setSelectedApplicant(app);
     setShowApplicantDialog(true);
+  };
+  const resetSlotDialog = () => {
+    setShowPreview(false);
+    setPreview([]);
+    setBulkSlot({
+      date_from: "",
+      date_to: "",
+      days_of_week: [],
+      time_slots: [{ start_time: "09:00", end_time: "10:00" }],
+      service_type: "general_consultation",
+      max_bookings: 3,
+    });
+  };
+
+  const generatePreview = () => {
+    if (!bulkSlot.date_from || !bulkSlot.date_to) {
+      toast.error("Please select a date range");
+      return;
+    }
+    if (bulkSlot.days_of_week.length === 0) {
+      toast.error("Please select at least one day");
+      return;
+    }
+    if (bulkSlot.time_slots.length === 0) {
+      toast.error("Please add at least one time slot");
+      return;
+    }
+    const slots = [];
+    const end = new Date(bulkSlot.date_to);
+    for (
+      let d = new Date(bulkSlot.date_from);
+      d <= end;
+      d.setDate(d.getDate() + 1)
+    ) {
+      const dayOfWeek = (d.getDay() + 6) % 7;
+      if (bulkSlot.days_of_week.includes(dayOfWeek)) {
+        for (const ts of bulkSlot.time_slots) {
+          slots.push({
+            date: d.toISOString().split("T")[0],
+            start_time: ts.start_time,
+            end_time: ts.end_time,
+            service_type: bulkSlot.service_type,
+            max_bookings: bulkSlot.max_bookings,
+          });
+        }
+      }
+    }
+    if (slots.length === 0) {
+      toast.error("No slots generated — check your date range and days");
+      return;
+    }
+    setPreview(slots);
+    setShowPreview(true);
+  };
+
+  const handleBulkCreate = async () => {
+    if (preview.length === 0) return;
+    setBulkCreating(true);
+    try {
+      await Promise.all(
+        preview.map((slot) =>
+          adminApi.createSlot({ ...slot, is_active: true }),
+        ),
+      );
+      toast.success(`✅ ${preview.length} slots created successfully!`);
+      setShowSlotDialog(false);
+      resetSlotDialog();
+      loadSlots();
+    } catch {
+      toast.error("Some slots failed — duplicates are skipped automatically");
+      loadSlots();
+    } finally {
+      setBulkCreating(false);
+    }
+  };
+
+  const toggleDay = (i) => {
+    const days = bulkSlot.days_of_week.includes(i)
+      ? bulkSlot.days_of_week.filter((d) => d !== i)
+      : [...bulkSlot.days_of_week, i];
+    setBulkSlot({ ...bulkSlot, days_of_week: days });
+  };
+
+  const addTimeSlot = () =>
+    setBulkSlot({
+      ...bulkSlot,
+      time_slots: [
+        ...bulkSlot.time_slots,
+        { start_time: "09:00", end_time: "10:00" },
+      ],
+    });
+
+  const removeTimeSlot = (i) =>
+    setBulkSlot({
+      ...bulkSlot,
+      time_slots: bulkSlot.time_slots.filter((_, idx) => idx !== i),
+    });
+
+  const updateTimeSlot = (i, field, value) => {
+    const updated = [...bulkSlot.time_slots];
+    updated[i] = { ...updated[i], [field]: value };
+    setBulkSlot({ ...bulkSlot, time_slots: updated });
   };
 
   if (!user?.is_staff) return null;
@@ -1306,12 +1396,15 @@ export default function AdminDashboard() {
                       Refresh
                     </Button>
                     <Button
-                      onClick={() => setShowSlotDialog(true)}
+                      onClick={() => {
+                        resetSlotDialog();
+                        setShowSlotDialog(true);
+                      }}
                       size="sm"
                       className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white"
                     >
                       <Plus className="w-4 h-4 mr-2" />
-                      Add Slot
+                      Bulk Add Slots
                     </Button>
                   </div>
                 </div>
@@ -1426,102 +1519,254 @@ export default function AdminDashboard() {
               </AlertDialogContent>
             </AlertDialog>
 
-            {/* Add Slot Dialog */}
-            <Dialog open={showSlotDialog} onOpenChange={setShowSlotDialog}>
-              <DialogContent>
+            {/* Bulk Slot Creator Dialog */}
+            <Dialog
+              open={showSlotDialog}
+              onOpenChange={(o) => {
+                setShowSlotDialog(o);
+                if (!o) resetSlotDialog();
+              }}
+            >
+              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
-                  <DialogTitle>Create New Time Slot</DialogTitle>
+                  <DialogTitle>
+                    {showPreview
+                      ? `Preview — ${preview.length} slots`
+                      : "Bulk Create Appointment Slots"}
+                  </DialogTitle>
                   <DialogDescription>
-                    Add a new appointment slot for customers to book.
+                    {showPreview
+                      ? "Review the slots below before confirming creation."
+                      : "Generate multiple slots at once by selecting a date range and schedule."}
                   </DialogDescription>
                 </DialogHeader>
-                <form onSubmit={handleCreateSlot} className="space-y-4">
-                  <div>
-                    <Label>Date</Label>
-                    <Input
-                      type="date"
-                      value={newSlot.date}
-                      onChange={(e) =>
-                        setNewSlot({ ...newSlot, date: e.target.value })
-                      }
-                      required
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label>Start Time</Label>
-                      <Input
-                        type="time"
-                        value={newSlot.start_time}
-                        onChange={(e) =>
-                          setNewSlot({ ...newSlot, start_time: e.target.value })
-                        }
-                        required
-                      />
+
+                {!showPreview ? (
+                  <div className="space-y-5">
+                    {/* Date Range */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="mb-1.5 block">From Date</Label>
+                        <Input
+                          type="date"
+                          value={bulkSlot.date_from}
+                          min={new Date().toISOString().split("T")[0]}
+                          onChange={(e) =>
+                            setBulkSlot({
+                              ...bulkSlot,
+                              date_from: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div>
+                        <Label className="mb-1.5 block">To Date</Label>
+                        <Input
+                          type="date"
+                          value={bulkSlot.date_to}
+                          min={
+                            bulkSlot.date_from ||
+                            new Date().toISOString().split("T")[0]
+                          }
+                          onChange={(e) =>
+                            setBulkSlot({
+                              ...bulkSlot,
+                              date_to: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
                     </div>
+
+                    {/* Days of Week */}
                     <div>
-                      <Label>End Time</Label>
-                      <Input
-                        type="time"
-                        value={newSlot.end_time}
-                        onChange={(e) =>
-                          setNewSlot({ ...newSlot, end_time: e.target.value })
-                        }
-                        required
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label>Service Type</Label>
-                    <Select
-                      value={newSlot.service_type}
-                      onValueChange={(v) =>
-                        setNewSlot({ ...newSlot, service_type: v })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Object.entries(serviceLabels).map(([v, l]) => (
-                          <SelectItem key={v} value={v}>
-                            {l}
-                          </SelectItem>
+                      <Label className="mb-2 block">Days of Week</Label>
+                      <div className="flex gap-2 flex-wrap">
+                        {DAY_NAMES.map((day, i) => (
+                          <button
+                            key={day}
+                            type="button"
+                            onClick={() => toggleDay(i)}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+                              bulkSlot.days_of_week.includes(i)
+                                ? "bg-[#1e3a5f] text-white"
+                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                            }`}
+                          >
+                            {day}
+                          </button>
                         ))}
-                      </SelectContent>
-                    </Select>
+                      </div>
+                    </div>
+
+                    {/* Time Slots */}
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <Label>Time Slots</Label>
+                        <button
+                          type="button"
+                          onClick={addTimeSlot}
+                          className="text-xs text-[#1e3a5f] hover:text-[#c9a962] font-medium flex items-center gap-1"
+                        >
+                          <Plus className="w-3 h-3" /> Add Time
+                        </button>
+                      </div>
+                      <div className="space-y-2">
+                        {bulkSlot.time_slots.map((ts, i) => (
+                          <div key={i} className="flex items-center gap-2">
+                            <Input
+                              type="time"
+                              value={ts.start_time}
+                              onChange={(e) =>
+                                updateTimeSlot(i, "start_time", e.target.value)
+                              }
+                              className="flex-1"
+                            />
+                            <span className="text-gray-400 text-sm shrink-0">
+                              to
+                            </span>
+                            <Input
+                              type="time"
+                              value={ts.end_time}
+                              onChange={(e) =>
+                                updateTimeSlot(i, "end_time", e.target.value)
+                              }
+                              className="flex-1"
+                            />
+                            {bulkSlot.time_slots.length > 1 && (
+                              <button
+                                type="button"
+                                onClick={() => removeTimeSlot(i)}
+                                className="text-red-400 hover:text-red-600 shrink-0"
+                              >
+                                <XCircle className="w-4 h-4" />
+                              </button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Service & Max Bookings */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <Label className="mb-1.5 block">Service Type</Label>
+                        <Select
+                          value={bulkSlot.service_type}
+                          onValueChange={(v) =>
+                            setBulkSlot({ ...bulkSlot, service_type: v })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.entries(serviceLabels).map(([v, l]) => (
+                              <SelectItem key={v} value={v}>
+                                {l}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div>
+                        <Label className="mb-1.5 block">
+                          Max Bookings per Slot
+                        </Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          max="20"
+                          value={bulkSlot.max_bookings}
+                          onChange={(e) =>
+                            setBulkSlot({
+                              ...bulkSlot,
+                              max_bookings: parseInt(e.target.value) || 1,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <DialogFooter>
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowSlotDialog(false)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        onClick={generatePreview}
+                        className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white"
+                      >
+                        Preview Slots →
+                      </Button>
+                    </DialogFooter>
                   </div>
-                  <div>
-                    <Label>Max Bookings</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={newSlot.max_bookings}
-                      onChange={(e) =>
-                        setNewSlot({
-                          ...newSlot,
-                          max_bookings: parseInt(e.target.value),
-                        })
-                      }
-                      required
-                    />
+                ) : (
+                  /* Preview Screen */
+                  <div className="space-y-4">
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm text-blue-700">
+                      <strong>{preview.length} slots</strong> will be created
+                      across{" "}
+                      <strong>
+                        {[...new Set(preview.map((s) => s.date))].length} days
+                      </strong>
+                      . Review before confirming.
+                    </div>
+
+                    <div className="max-h-72 overflow-y-auto space-y-1.5 border border-gray-100 rounded-xl p-3 bg-[#faf8f5]">
+                      {preview.map((slot, i) => (
+                        <div
+                          key={i}
+                          className="flex items-center justify-between text-sm py-2 px-3 bg-white rounded-lg border border-gray-100"
+                        >
+                          <span className="font-medium text-[#1e3a5f] w-32">
+                            {new Date(
+                              slot.date + "T00:00:00",
+                            ).toLocaleDateString("en-US", {
+                              weekday: "short",
+                              month: "short",
+                              day: "numeric",
+                            })}
+                          </span>
+                          <span className="text-gray-500 w-28">
+                            {slot.start_time} – {slot.end_time}
+                          </span>
+                          <span className="text-xs text-gray-400 flex-1">
+                            {serviceLabels[slot.service_type]}
+                          </span>
+                          <span className="text-xs text-gray-400">
+                            max {slot.max_bookings}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <DialogFooter className="gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => setShowPreview(false)}
+                      >
+                        ← Back
+                      </Button>
+                      <Button
+                        onClick={handleBulkCreate}
+                        disabled={bulkCreating}
+                        className="bg-[#1e3a5f] hover:bg-[#2a4a6f] text-white"
+                      >
+                        {bulkCreating ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="w-4 h-4 animate-spin" />{" "}
+                            Creating…
+                          </span>
+                        ) : (
+                          `✓ Create ${preview.length} Slots`
+                        )}
+                      </Button>
+                    </DialogFooter>
                   </div>
-                  <DialogFooter>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => setShowSlotDialog(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button
-                      type="submit"
-                      className="bg-[#1e3a5f] hover:bg-[#2a4a6f]"
-                    >
-                      Create Slot
-                    </Button>
-                  </DialogFooter>
-                </form>
+                )}
               </DialogContent>
             </Dialog>
           </div>
